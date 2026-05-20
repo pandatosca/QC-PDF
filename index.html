@@ -23,6 +23,9 @@
             --gray-700: #8F9098;
             --gray-800: #71727A;
             --black: #1F2024;
+            --success: #298267;
+            --success-light: #E7F4E8;
+            --error: #ED3241;
             --font-sans: 'Inter', system-ui, sans-serif;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -58,13 +61,21 @@
                 display: grid;
                 grid-template-columns: 320px 1fr 280px;
                 gap: 1.25rem;
-                align-items: start;
+                align-items: stretch;
                 max-width: 1280px;
                 margin: 0 auto;
             }
-            .file-manager { grid-column: 1; }
-            .preview-container { grid-column: 2; }
-            .info-sidebar { grid-column: 3; }
+            .file-manager, .preview-container, .info-sidebar {
+                display: flex;
+                flex-direction: column;
+            }
+            .file-manager .card-guidestyle, 
+            .preview-container .card-guidestyle, 
+            .info-sidebar .card-guidestyle {
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
         }
         
         @media (max-width: 767px) {
@@ -101,19 +112,6 @@
             transition: all 0.2s;
         }
         .btn-primary:hover { background-color: #1a6fc9; transform: translateY(-1px); }
-        .btn-secondary {
-            background: var(--gray-200);
-            border: none;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 2rem;
-            font-size: 0.875rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-secondary:hover { background: var(--gray-300); }
         .drag-area {
             border: 2px dashed var(--gray-400);
             border-radius: 1rem;
@@ -134,8 +132,13 @@
             background: white;
             transition: background 0.2s;
         }
+        .file-item.renamed {
+            background: var(--success-light);
+            border-left-color: var(--success);
+        }
         .file-item.dragging { opacity: 0.5; cursor: grabbing; }
         .file-item.active { background: var(--blue-50); border-left-color: var(--blue-500); }
+        .file-item.active.renamed { background: #d4f0e8; border-left-color: var(--success); }
         .file-item:hover:not(.active) { background: var(--gray-200); }
         .file-actions {
             display: flex;
@@ -152,7 +155,7 @@
             font-size: 0.75rem;
         }
         .rename-btn:hover { background: var(--gray-300); color: var(--blue-500); }
-        .delete-file-btn:hover { background: #FFE2E5; color: #ED3241; }
+        .delete-file-btn:hover { background: #FFE2E5; color: var(--error); }
         .clear-all-btn, .merge-btn {
             font-size: 0.7rem;
             padding: 0.25rem 0.5rem;
@@ -162,11 +165,12 @@
             cursor: pointer;
         }
         .merge-btn:hover { color: var(--blue-500); }
-        .clear-all-btn:hover { color: #ED3241; }
+        .clear-all-btn:hover { color: var(--error); }
         .info-vertical {
             background: var(--gray-200);
             border-radius: 1rem;
             padding: 1rem;
+            flex: 1;
         }
         .info-vertical-item {
             margin-bottom: 1rem;
@@ -201,6 +205,7 @@
             align-items: center;
             padding: 0.5rem;
             min-height: 400px;
+            flex: 1;
         }
         .pdf-wrapper {
             position: relative;
@@ -245,18 +250,34 @@
         .page-btn:hover:not(:disabled) { background: var(--gray-300); }
         .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .page-indicator { font-size: 0.75rem; font-weight: 500; color: var(--gray-800); }
-        .footer-floating {
+        
+        .footer-new {
             flex-shrink: 0;
-            text-align: center;
-            padding: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
             background: var(--gray-100);
             border-top: 1px solid var(--gray-200);
             font-size: 0.75rem;
+        }
+        .footer-left {
             color: var(--gray-700);
         }
+        .footer-right {
+            color: var(--blue-500);
+            cursor: pointer;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .footer-right:hover {
+            color: #1a6fc9;
+        }
+        
         .file-list-container {
             max-height: 350px;
             overflow-y: auto;
+            flex: 1;
         }
         .loading-spinner {
             position: absolute;
@@ -272,39 +293,108 @@
             gap: 0.5rem;
             z-index: 10;
         }
-        .rename-modal {
+        .modal-guidestyle {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.5);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 50;
+            z-index: 100;
+        }
+        .modal-guidestyle-content {
+            background: var(--white);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .modal-guidestyle-content h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--black);
+        }
+        .modal-guidestyle-content p {
+            font-size: 0.875rem;
+            color: var(--gray-700);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        .qris-img {
+            max-width: 200px;
+            margin: 0 auto 1rem auto;
+            display: block;
+            border-radius: 0.5rem;
+            background: white;
+            padding: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .modal-close-btn {
+            background: var(--blue-500);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+        .modal-close-btn:hover {
+            background-color: #1a6fc9;
+        }
+        .rename-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
         }
         .rename-modal-content {
-            background: white;
+            background: var(--white);
             border-radius: 1rem;
             padding: 1.5rem;
             width: 90%;
             max-width: 320px;
         }
-        .toast-message {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--black);
-            color: white;
-            padding: 0.5rem 1rem;
+        .rename-modal-content h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        .rename-modal-content input {
+            width: 100%;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .rename-modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        .rename-cancel {
+            background: var(--gray-200);
+            border: none;
+            padding: 0.4rem 1rem;
             border-radius: 40px;
             font-size: 0.75rem;
-            z-index: 60;
-            animation: fadeOut 2s ease forwards;
+            cursor: pointer;
         }
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            70% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
+        .rename-save {
+            background: var(--blue-500);
+            color: white;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -318,38 +408,40 @@
 <div class="main-content">
     <div class="app-layout">
         <!-- KOLOM KIRI: File Manager -->
-        <div class="file-manager card-guidestyle">
-            <div class="p-4 border-b border-gray-100">
-                <h2 class="font-bold text-lg flex items-center gap-2 mb-3">
-                    <i class="fas fa-files" style="color: var(--blue-500);"></i> File PDF
-                </h2>
-                <div id="dragDropArea" class="drag-area p-4 text-center cursor-pointer">
-                    <input type="file" id="pdfUploadInput" accept="application/pdf" multiple class="hidden">
-                    <i class="fas fa-cloud-upload-alt text-3xl" style="color: var(--blue-500); margin-bottom: 0.5rem;"></i>
-                    <p class="text-sm font-medium">Klik atau seret file PDF ke sini</p>
-                    <p class="text-xs mt-1" style="color: var(--gray-800);">Mendukung banyak file</p>
-                    <button id="uploadBtn" class="btn-primary text-sm mt-3 w-full justify-center">
-                        <i class="fas fa-upload"></i> Pilih File PDF
-                    </button>
-                </div>
-            </div>
-            <div class="p-2">
-                <div class="flex justify-between items-center mb-2 px-1">
-                    <span class="text-xs font-semibold" style="color: var(--gray-800);">DAFTAR FILE</span>
-                    <div>
-                        <button id="mergePdfBtn" class="merge-btn"><i class="fas fa-object-group"></i> Merge</button>
-                        <button id="clearAllBtn" class="clear-all-btn"><i class="fas fa-trash-alt"></i> Clear all</button>
+        <div class="file-manager">
+            <div class="card-guidestyle" style="display: flex; flex-direction: column; height: 100%;">
+                <div class="p-4 border-b border-gray-100">
+                    <h2 class="font-bold text-lg flex items-center gap-2 mb-3">
+                        <i class="fas fa-files" style="color: var(--blue-500);"></i> File PDF
+                    </h2>
+                    <div id="dragDropArea" class="drag-area p-4 text-center cursor-pointer">
+                        <input type="file" id="pdfUploadInput" accept="application/pdf" multiple class="hidden">
+                        <i class="fas fa-cloud-upload-alt text-3xl" style="color: var(--blue-500); margin-bottom: 0.5rem;"></i>
+                        <p class="text-sm font-medium">Klik atau seret file PDF ke sini</p>
+                        <p class="text-xs mt-1" style="color: var(--gray-800);">Mendukung banyak file</p>
+                        <button id="uploadBtn" class="btn-primary text-sm mt-3 w-full justify-center">
+                            <i class="fas fa-upload"></i> Pilih File PDF
+                        </button>
                     </div>
                 </div>
-                <div id="fileListContainer" class="file-list-container">
-                    <div class="text-center py-8 text-sm" style="color: var(--gray-700);">Belum ada PDF. Upload file.</div>
+                <div class="p-2" style="flex: 1; display: flex; flex-direction: column;">
+                    <div class="flex justify-between items-center mb-2 px-1">
+                        <span class="text-xs font-semibold" style="color: var(--gray-800);">DAFTAR FILE</span>
+                        <div>
+                            <button id="mergePdfBtn" class="merge-btn"><i class="fas fa-object-group"></i> Merge</button>
+                            <button id="clearAllBtn" class="clear-all-btn"><i class="fas fa-trash-alt"></i> Clear all</button>
+                        </div>
+                    </div>
+                    <div id="fileListContainer" class="file-list-container">
+                        <div class="text-center py-8 text-sm" style="color: var(--gray-700);">Belum ada PDF. Upload file.</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- KOLOM TENGAH: Preview PDF -->
         <div class="preview-container">
-            <div class="card-guidestyle p-4 h-full flex flex-col">
+            <div class="card-guidestyle p-4" style="display: flex; flex-direction: column; height: 100%;">
                 <div id="previewWrapper" class="preview-wrapper">
                     <div id="pdfWrapper" class="pdf-wrapper">
                         <canvas id="pdfCanvas"></canvas>
@@ -370,26 +462,26 @@
 
         <!-- KOLOM KANAN: Informasi Detail Vertikal -->
         <div class="info-sidebar">
-            <div class="card-guidestyle p-4">
+            <div class="card-guidestyle p-4" style="display: flex; flex-direction: column; height: 100%;">
                 <div class="info-vertical">
                     <div class="info-vertical-item">
-                        <div class="info-label">Nama File</div>
+                        <div class="info-label">NAMA FILE</div>
                         <div class="info-value" id="activeFileName" style="word-break: break-word;">—</div>
                     </div>
                     <div class="info-vertical-item">
-                        <div class="info-label">Ukuran file</div>
+                        <div class="info-label">UKURAN FILE</div>
                         <div class="info-value" id="fileSizeMB">— MB</div>
                     </div>
                     <div class="info-vertical-item">
-                        <div class="info-label">Print Size (WxH)</div>
+                        <div class="info-label">PRINT SIZE (WxH)</div>
                         <div class="info-value" id="printSizeCm">— cm</div>
                     </div>
                     <div class="info-vertical-item">
-                        <div class="info-label">Terakhir diubah</div>
+                        <div class="info-label">TERAKHIR DIUBAH</div>
                         <div class="info-value" id="fileModified">—</div>
                     </div>
                     <div class="info-vertical-item">
-                        <div class="info-label">Total Halaman</div>
+                        <div class="info-label">TOTAL HALAMAN</div>
                         <div class="info-value" id="numPages">—</div>
                     </div>
                 </div>
@@ -398,8 +490,10 @@
     </div>
 </div>
 
-<div class="footer-floating">
-    QC-PDF 2026 Made with Herry
+<!-- Footer baru -->
+<div class="footer-new">
+    <div class="footer-left">QC-PDF 2026 Made with Herry</div>
+    <div class="footer-right" id="kasihTipsBtn"><i class="fas fa-heart" style="color: #ED3241;"></i> Kasih Tips</div>
 </div>
 
 <script>
@@ -432,13 +526,53 @@
         const totalPagesSpan = document.getElementById('totalPages');
         const loadingMsg = document.getElementById('loadingMsg');
         const previewWrapper = document.getElementById('previewWrapper');
+        const kasihTipsBtn = document.getElementById('kasihTipsBtn');
 
-        function showToast(message) {
-            const toast = document.createElement('div');
-            toast.className = 'toast-message';
-            toast.innerText = message;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2000);
+        // QRIS URL dari GitHub (sudah terupload)
+        const qrisUrl = 'https://raw.githubusercontent.com/pandatosca/QC-PDF/main/qris_herry.svg';
+
+        // Modal Tips (Kasih Tips) dengan teks baru dan QRIS
+        function showTipsModal() {
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'modal-guidestyle';
+            modalDiv.innerHTML = `
+                <div class="modal-guidestyle-content" style="max-width: 420px;">
+                    <i class="fas fa-heart" style="font-size: 2rem; color: #ED3241; margin-bottom: 0.5rem;"></i>
+                    <h3>Terima Kasih!</h3>
+                    <p style="margin-bottom: 1rem;">Senang melihat QC-PDF bisa membantu pekerjaan Anda. Aplikasi ini dibuat dengan fokus untuk membuat proses quality control dokumen PDF jadi lebih cepat, rapi, dan nyaman digunakan.</p>
+                    <p style="margin-bottom: 1rem;">Kalau Anda ingin ikut mendukung pengembangan QC-PDF, Anda bisa memberikan tips sukarela melalui QRIS di bawah ini. Dukungan sekecil apa pun sangat berarti dan akan membantu pengembangan fitur-fitur baru ke depannya.</p>
+                    <img src="${qrisUrl}" alt="QRIS" class="qris-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 200 200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23E8E9F1\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%2371727A\' font-size=\'12\'%3EQRIS%3C/text%3E%3C/svg%3E'">
+                    <p style="margin-top: 0.5rem; font-weight: 600;">— Herry, Developer QC-PDF —</p>
+                    <button class="modal-close-btn">Tutup</button>
+                </div>
+            `;
+            document.body.appendChild(modalDiv);
+            const closeBtn = modalDiv.querySelector('.modal-close-btn');
+            const closeModal = () => modalDiv.remove();
+            closeBtn.onclick = closeModal;
+            modalDiv.onclick = (e) => { if (e.target === modalDiv) closeModal(); };
+        }
+
+        // Modal Guidestyle untuk alert
+        function showModal(title, message, onClose = null) {
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'modal-guidestyle';
+            modalDiv.innerHTML = `
+                <div class="modal-guidestyle-content">
+                    <h3>${escapeHtml(title)}</h3>
+                    <p>${escapeHtml(message)}</p>
+                    <button class="modal-close-btn">Tutup</button>
+                </div>
+            `;
+            document.body.appendChild(modalDiv);
+            const closeBtn = modalDiv.querySelector('.modal-close-btn');
+            const closeModal = () => {
+                modalDiv.remove();
+                if (onClose) onClose();
+            };
+            closeBtn.onclick = closeModal;
+            modalDiv.onclick = (e) => { if (e.target === modalDiv) closeModal(); };
+            return modalDiv;
         }
 
         function pointsToCm(points) { return (points * 2.54 / 72).toFixed(2); }
@@ -506,16 +640,11 @@
         // Fungsi rename dengan download file baru
         async function renameAndDownloadFile(index, newName) {
             const file = uploadedFiles[index];
-            const oldDisplayName = file.displayName || file.name;
-            
-            // Pastikan nama memiliki ekstensi .pdf
             let finalName = newName.trim();
             if (!finalName.toLowerCase().endsWith('.pdf')) {
                 finalName = finalName + '.pdf';
             }
-            
             try {
-                // Buat file baru dengan konten yang sama, nama berbeda
                 const blob = new Blob([file.arrayBuffer], { type: 'application/pdf' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
@@ -523,32 +652,30 @@
                 link.click();
                 URL.revokeObjectURL(link.href);
                 
-                // Update display name di aplikasi
                 file.displayName = finalName;
+                file.isRenamed = true;
                 if (activeFileIndex === index) {
                     activeFileNameSpan.innerText = finalName;
                 }
                 renderFileList();
-                
-                showToast(`File berhasil diunduh dengan nama: ${finalName}`);
+                showModal('Berhasil', `File berhasil diunduh dengan nama: ${finalName}`);
             } catch(err) {
                 console.error(err);
-                showToast('Gagal mengunduh file dengan nama baru');
+                showModal('Gagal', 'Gagal mengunduh file dengan nama baru');
             }
         }
 
-        // Modal rename dengan opsi download
         function showRenameModal(index, currentName) {
             const modalDiv = document.createElement('div');
             modalDiv.className = 'rename-modal';
             modalDiv.innerHTML = `
                 <div class="rename-modal-content">
-                    <h3 class="font-bold mb-2">Ganti Nama File</h3>
-                    <input type="text" id="renameInput" class="w-full border rounded-lg p-2 mb-3" value="${escapeHtml(currentName)}">
-                    <p class="text-xs text-gray-500 mb-3">*File akan diunduh dengan nama baru (konten tetap sama)</p>
-                    <div class="flex justify-end gap-2">
-                        <button id="cancelRename" class="px-3 py-1 border rounded-lg">Batal</button>
-                        <button id="saveRename" class="px-3 py-1 bg-blue-500 text-white rounded-lg">Simpan & Unduh</button>
+                    <h3>Ganti Nama File</h3>
+                    <input type="text" id="renameInput" class="rename-input" value="${escapeHtml(currentName)}">
+                    <p style="font-size: 0.7rem; color: var(--gray-700); margin-bottom: 0.75rem;">*File akan diunduh dengan nama baru (konten tetap sama)</p>
+                    <div class="rename-modal-buttons">
+                        <button id="cancelRename" class="rename-cancel">Batal</button>
+                        <button id="saveRename" class="rename-save">Simpan & Unduh</button>
                     </div>
                 </div>
             `;
@@ -560,6 +687,8 @@
                 const newName = input.value.trim();
                 if (newName) {
                     await renameAndDownloadFile(index, newName);
+                } else {
+                    showModal('Peringatan', 'Nama file tidak boleh kosong');
                 }
                 modalDiv.remove();
             };
@@ -568,7 +697,7 @@
         // Merge PDF
         async function mergePDFs() {
             if (uploadedFiles.length < 2) {
-                alert("Minimal 2 file untuk digabung.");
+                showModal('Informasi', 'Minimal 2 file untuk digabung.');
                 return;
             }
             loadingMsg.classList.remove('hidden');
@@ -586,8 +715,11 @@
                 link.download = `QC-Merged_${new Date().toISOString().slice(0,19)}.pdf`;
                 link.click();
                 URL.revokeObjectURL(link.href);
-                showToast("Merge berhasil!");
-            } catch(err) { console.error(err); alert("Gagal merge PDF."); }
+                showModal('Berhasil', 'Merge PDF berhasil!');
+            } catch(err) { 
+                console.error(err); 
+                showModal('Gagal', 'Gagal merge PDF.'); 
+            }
             finally { loadingMsg.classList.add('hidden'); }
         }
 
@@ -643,7 +775,8 @@
                     pdfDoc: pdfDoc,
                     pageDimensionsCm: pageDimensionsCm,
                     arrayBuffer: arrayBuffer,
-                    lastModifiedDate: lastModifiedDate
+                    lastModifiedDate: lastModifiedDate,
+                    isRenamed: false
                 });
             }
             renderFileList();
@@ -670,6 +803,7 @@
         }
 
         function clearAllFiles() {
+            if (uploadedFiles.length === 0) return;
             uploadedFiles = [];
             activeFileIndex = -1;
             currentPdfDoc = null;
@@ -682,6 +816,7 @@
             totalPagesSpan.innerText = '—';
             currentPageSpan.innerText = '1';
             renderFileList();
+            showModal('Berhasil', 'Semua file telah dihapus.');
         }
 
         function renderFileList() {
@@ -692,8 +827,9 @@
             fileListDiv.innerHTML = '';
             uploadedFiles.forEach((f, idx) => {
                 const isActive = idx === activeFileIndex;
+                const isRenamed = f.isRenamed === true;
                 const div = document.createElement('div');
-                div.className = `file-item ${isActive ? 'active' : ''}`;
+                div.className = `file-item ${isActive ? 'active' : ''} ${isRenamed ? 'renamed' : ''}`;
                 div.draggable = true;
                 div.setAttribute('data-index', idx);
                 div.innerHTML = `
@@ -737,13 +873,14 @@
             e.preventDefault();
             dragArea.classList.remove('drag-over');
             const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
-            if (files.length) handleUpload(files); else alert("Hanya file PDF yang didukung.");
+            if (files.length) handleUpload(files); else showModal('Peringatan', 'Hanya file PDF yang didukung.');
         });
         dragArea.addEventListener('click', () => uploadInput.click());
         clearAllBtn.addEventListener('click', clearAllFiles);
         mergePdfBtn.addEventListener('click', mergePDFs);
         prevBtn.addEventListener('click', () => changePage(-1));
         nextBtn.addEventListener('click', () => changePage(1));
+        kasihTipsBtn.addEventListener('click', showTipsModal);
         window.addEventListener('resize', () => { if (activeFileIndex !== -1) renderPage(); });
         renderFileList();
     })();
