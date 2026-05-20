@@ -89,6 +89,10 @@
             .info-sidebar { order: 2; }
             .preview-container { order: 1; }
             .file-manager { order: 0; }
+            /* Perbaikan untuk footer di mobile - memastikan ada ruang */
+            .main-content {
+                padding-bottom: 0.5rem;
+            }
         }
         
         .card-guidestyle {
@@ -251,6 +255,7 @@
         .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .page-indicator { font-size: 0.75rem; font-weight: 500; color: var(--gray-800); }
         
+        /* Footer - Perbaikan untuk mobile */
         .footer-new {
             flex-shrink: 0;
             display: flex;
@@ -261,6 +266,16 @@
             border-top: 1px solid var(--gray-200);
             font-size: 0.75rem;
         }
+        /* Memastikan footer selalu terlihat di mobile */
+        @media (max-width: 767px) {
+            .footer-new {
+                padding: 0.75rem 1rem;
+                position: relative;
+                background: var(--gray-100);
+                width: 100%;
+            }
+        }
+        
         .footer-left {
             color: var(--gray-700);
         }
@@ -318,7 +333,7 @@
             color: var(--black);
         }
         .modal-guidestyle-content p {
-            font-size: 0.75rem;  /* diubah dari 0.875rem menjadi 0.75rem */
+            font-size: 0.75rem;
             color: var(--gray-700);
             margin-bottom: 0.75rem;
             line-height: 1.4;
@@ -490,7 +505,7 @@
     </div>
 </div>
 
-<!-- Footer baru -->
+<!-- Footer - dengan perbaikan agar muncul di mobile -->
 <div class="footer-new">
     <div class="footer-left">QC-PDF 2026 Made with Herry</div>
     <div class="footer-right" id="kasihTipsBtn"><i class="fas fa-heart" style="color: #ED3241;"></i> Kasih Tips</div>
@@ -539,8 +554,8 @@
                 <div class="modal-guidestyle-content" style="max-width: 420px;">
                     <i class="fas fa-heart" style="font-size: 2rem; color: #ED3241; margin-bottom: 0.5rem;"></i>
                     <h3>Terima Kasih!</h3>
-                    <p style="margin-bottom: 1rem;">Senang melihat QC-PDF bisa membantu pekerjaan Anda. Aplikasi ini dibuat dengan fokus untuk membuat proses quality control dokumen PDF jadi lebih cepat, rapi, dan nyaman digunakan.</p>
-                    <p style="margin-bottom: 1rem;">Kalau Anda ingin ikut mendukung pengembangan QC-PDF, Anda bisa memberikan tips sukarela melalui QRIS di bawah ini. Dukungan sekecil apa pun sangat berarti dan akan membantu pengembangan fitur-fitur baru ke depannya.</p>
+                    <p style="margin-bottom: 0.75rem; font-size: 0.75rem;">Senang melihat QC-PDF bisa membantu pekerjaan Anda. Aplikasi ini dibuat dengan fokus untuk membuat proses quality control dokumen PDF jadi lebih cepat, rapi, dan nyaman digunakan.</p>
+                    <p style="margin-bottom: 0.75rem; font-size: 0.75rem;">Kalau Anda ingin ikut mendukung pengembangan QC-PDF, Anda bisa memberikan tips sukarela melalui QRIS di bawah ini. Dukungan sekecil apa pun sangat berarti dan akan membantu pengembangan fitur-fitur baru ke depannya.</p>
                     <img src="${qrisUrl}" alt="QRIS" class="qris-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 200 200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23E8E9F1\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%2371727A\' font-size=\'12\'%3EQRIS%3C/text%3E%3C/svg%3E'">
                     <p style="margin-top: 0.5rem; font-weight: 600;">— Herry, Developer QC-PDF —</p>
                     <button class="modal-close-btn">Tutup</button>
