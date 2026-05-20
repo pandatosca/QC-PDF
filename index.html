@@ -52,6 +52,12 @@
             overflow-y: auto;
             padding: 1rem;
         }
+        /* padding bottom untuk memberi ruang pada fixed footer di mobile */
+        @media (max-width: 767px) {
+            .main-content {
+                padding-bottom: 5rem;
+            }
+        }
         .main-content::-webkit-scrollbar { width: 6px; }
         .main-content::-webkit-scrollbar-track { background: var(--gray-200); border-radius: 10px; }
         .main-content::-webkit-scrollbar-thumb { background: var(--gray-400); border-radius: 10px; }
@@ -89,10 +95,6 @@
             .info-sidebar { order: 2; }
             .preview-container { order: 1; }
             .file-manager { order: 0; }
-            /* Perbaikan untuk footer di mobile - memastikan ada ruang */
-            .main-content {
-                padding-bottom: 0.5rem;
-            }
         }
         
         .card-guidestyle {
@@ -200,16 +202,17 @@
             color: var(--black);
             word-break: break-word;
         }
+        /* Preview area dengan overflow untuk zoom & scroll */
         .preview-wrapper {
-            background: transparent;
+            background: var(--gray-100);
             border-radius: 1rem;
-            overflow: hidden;
+            overflow: auto;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 0.5rem;
+            align-items: flex-start;
             min-height: 400px;
-            flex: 1;
+            max-height: 70vh;
+            position: relative;
         }
         .pdf-wrapper {
             position: relative;
@@ -220,18 +223,23 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             background: white;
             border-radius: 0.5rem;
-            max-width: 100%;
-            height: auto;
         }
         .controls-bar {
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: space-between;
             flex-wrap: wrap;
             gap: 0.75rem;
             margin-top: 0.75rem;
             padding-top: 0.5rem;
             border-top: 1px solid var(--gray-200);
+        }
+        .zoom-indicator {
+            font-size: 0.7rem;
+            background: var(--gray-200);
+            padding: 0.2rem 0.6rem;
+            border-radius: 40px;
+            color: var(--gray-800);
         }
         .pagination-group {
             display: flex;
@@ -255,7 +263,7 @@
         .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .page-indicator { font-size: 0.75rem; font-weight: 500; color: var(--gray-800); }
         
-        /* Footer - Perbaikan untuk mobile */
+        /* Footer fixed di mobile, normal di desktop */
         .footer-new {
             flex-shrink: 0;
             display: flex;
@@ -266,13 +274,19 @@
             border-top: 1px solid var(--gray-200);
             font-size: 0.75rem;
         }
-        /* Memastikan footer selalu terlihat di mobile */
+        
         @media (max-width: 767px) {
             .footer-new {
-                padding: 0.75rem 1rem;
-                position: relative;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
                 background: var(--gray-100);
-                width: 100%;
+                padding: 0.6rem 1rem;
+                z-index: 30;
+                box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
+                backdrop-filter: blur(8px);
+                background-color: rgba(248, 249, 254, 0.95);
             }
         }
         
@@ -307,6 +321,7 @@
             align-items: center;
             gap: 0.5rem;
             z-index: 10;
+            pointer-events: none;
         }
         .modal-guidestyle {
             position: fixed;
@@ -454,7 +469,7 @@
             </div>
         </div>
 
-        <!-- KOLOM TENGAH: Preview PDF -->
+        <!-- KOLOM TENGAH: Preview PDF dengan Zoom -->
         <div class="preview-container">
             <div class="card-guidestyle p-4" style="display: flex; flex-direction: column; height: 100%;">
                 <div id="previewWrapper" class="preview-wrapper">
@@ -471,6 +486,7 @@
                         <span class="page-indicator"><span id="currentPage">1</span> / <span id="totalPages">—</span></span>
                         <button id="nextPage" class="page-btn" disabled><i class="fas fa-chevron-right"></i></button>
                     </div>
+                    <div class="zoom-indicator" id="zoomIndicator">Zoom: 100%</div>
                 </div>
             </div>
         </div>
@@ -505,7 +521,7 @@
     </div>
 </div>
 
-<!-- Footer - dengan perbaikan agar muncul di mobile -->
+<!-- Footer - fixed di mobile -->
 <div class="footer-new">
     <div class="footer-left">QC-PDF 2026 Made with Herry</div>
     <div class="footer-right" id="kasihTipsBtn"><i class="fas fa-heart" style="color: #ED3241;"></i> Kasih Tips</div>
@@ -521,6 +537,12 @@
         let currentPdfDoc = null;
         let nextId = 1;
         
+        // Zoom state
+        let currentZoom = 1.0;          // 1 = fit to width (base scale)
+        let baseScale = 1.0;             // scale agar lebar pas di container
+        let originalPageWidth = 0;        // lebar asli halaman dalam px (scale=1)
+        let isRendering = false;
+        
         // DOM
         const fileListDiv = document.getElementById('fileListContainer');
         const uploadInput = document.getElementById('pdfUploadInput');
@@ -530,6 +552,7 @@
         const mergePdfBtn = document.getElementById('mergePdfBtn');
         const canvas = document.getElementById('pdfCanvas');
         const ctx = canvas.getContext('2d');
+        const previewWrapper = document.getElementById('previewWrapper');
         const activeFileNameSpan = document.getElementById('activeFileName');
         const fileSizeSpan = document.getElementById('fileSizeMB');
         const numPagesSpan = document.getElementById('numPages');
@@ -540,13 +563,12 @@
         const currentPageSpan = document.getElementById('currentPage');
         const totalPagesSpan = document.getElementById('totalPages');
         const loadingMsg = document.getElementById('loadingMsg');
-        const previewWrapper = document.getElementById('previewWrapper');
+        const zoomIndicator = document.getElementById('zoomIndicator');
         const kasihTipsBtn = document.getElementById('kasihTipsBtn');
 
-        // QRIS URL dari GitHub (sudah terupload)
+        // QRIS URL
         const qrisUrl = 'https://raw.githubusercontent.com/pandatosca/QC-PDF/main/qris_herry.svg';
 
-        // Modal Tips (Kasih Tips) dengan teks baru dan QRIS
         function showTipsModal() {
             const modalDiv = document.createElement('div');
             modalDiv.className = 'modal-guidestyle';
@@ -568,7 +590,6 @@
             modalDiv.onclick = (e) => { if (e.target === modalDiv) closeModal(); };
         }
 
-        // Modal Guidestyle untuk alert
         function showModal(title, message, onClose = null) {
             const modalDiv = document.createElement('div');
             modalDiv.className = 'modal-guidestyle';
@@ -598,24 +619,43 @@
             return { widthCm: pointsToCm(viewport.width), heightCm: pointsToCm(viewport.height), widthPt: viewport.width, heightPt: viewport.height };
         }
 
+        // Hitung base scale agar halaman muat lebar di container
+        function updateBaseScale() {
+            if (!previewWrapper || !originalPageWidth) return;
+            const containerWidth = previewWrapper.clientWidth - 20; // sedikit padding
+            if (containerWidth > 0 && originalPageWidth > 0) {
+                baseScale = containerWidth / originalPageWidth;
+            } else {
+                baseScale = 1;
+            }
+        }
+
+        // Render halaman dengan zoom saat ini
         async function renderPage() {
-            if (!currentPdfDoc || activeFileIndex === -1) return;
+            if (!currentPdfDoc || activeFileIndex === -1 || isRendering) return;
+            isRendering = true;
             loadingMsg.classList.remove('hidden');
             try {
                 const page = await currentPdfDoc.getPage(currentPage);
-                const containerRect = previewWrapper.getBoundingClientRect();
-                const viewportRaw = page.getViewport({ scale: 1 });
-                const scaleX = (containerRect.width - 20) / viewportRaw.width;
-                const scaleY = (containerRect.height - 20) / viewportRaw.height;
-                const scale = Math.min(scaleX, scaleY, 2.5);
-                const viewport = page.getViewport({ scale: Math.max(scale, 0.2) });
+                // Dapatkan ukuran asli halaman (scale=1)
+                const originalViewport = page.getViewport({ scale: 1 });
+                if (originalPageWidth === 0) {
+                    originalPageWidth = originalViewport.width;
+                    updateBaseScale();
+                }
+                // Hitung scale akhir: baseScale * currentZoom
+                let finalScale = baseScale * currentZoom;
+                // Batasi scale agar tidak terlalu kecil/ besar
+                finalScale = Math.min(Math.max(finalScale, 0.2), 5);
+                const viewport = page.getViewport({ scale: finalScale });
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
-                canvas.style.maxWidth = '100%';
-                canvas.style.height = 'auto';
-                await page.render({ canvasContext: ctx, viewport }).promise;
+                // Render dengan kualitas tinggi
+                await page.render({ canvasContext: ctx, viewport, background: 'white' }).promise;
+                // Update indikator zoom
+                zoomIndicator.innerText = `Zoom: ${Math.round(currentZoom * 100)}%`;
             } catch(err) { console.error(err); }
-            finally { loadingMsg.classList.add('hidden'); }
+            finally { loadingMsg.classList.add('hidden'); isRendering = false; }
         }
 
         async function setActiveFile(index) {
@@ -632,6 +672,13 @@
             currentPage = 1;
             currentPageSpan.innerText = '1';
             currentPdfDoc = file.pdfDoc;
+            // Reset zoom dan base scale saat ganti file
+            currentZoom = 1.0;
+            // Dapatkan lebar asli halaman pertama
+            const firstPage = await currentPdfDoc.getPage(1);
+            const vp = firstPage.getViewport({ scale: 1 });
+            originalPageWidth = vp.width;
+            updateBaseScale();
             await renderPage();
             updateNavButtons();
         }
@@ -652,7 +699,68 @@
             nextBtn.disabled = currentPage >= uploadedFiles[activeFileIndex].numPages;
         }
 
-        // Fungsi rename dengan download file baru
+        // Zoom handling
+        function adjustZoom(delta, clientX, clientY) {
+            let newZoom = currentZoom * delta;
+            newZoom = Math.min(Math.max(newZoom, 0.3), 4);
+            if (newZoom === currentZoom) return;
+            currentZoom = newZoom;
+            // Re-render halaman
+            renderPage().catch(console.error);
+        }
+
+        // Event: Ctrl + Scroll (desktop)
+        previewWrapper.addEventListener('wheel', (e) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                adjustZoom(delta, e.clientX, e.clientY);
+            }
+        }, { passive: false });
+
+        // Pinch zoom untuk mobile
+        let initialPinchDistance = null;
+        let initialZoom = 1;
+        previewWrapper.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                initialPinchDistance = Math.hypot(dx, dy);
+                initialZoom = currentZoom;
+            }
+        });
+        previewWrapper.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && initialPinchDistance) {
+                e.preventDefault();
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const newDistance = Math.hypot(dx, dy);
+                if (newDistance > 0) {
+                    const scale = newDistance / initialPinchDistance;
+                    let newZoom = initialZoom * scale;
+                    newZoom = Math.min(Math.max(newZoom, 0.3), 4);
+                    if (newZoom !== currentZoom) {
+                        currentZoom = newZoom;
+                        renderPage().catch(console.error);
+                    }
+                }
+            }
+        });
+        previewWrapper.addEventListener('touchend', () => {
+            initialPinchDistance = null;
+        });
+
+        // Resize observer untuk update base scale saat ukuran container berubah
+        const resizeObserver = new ResizeObserver(() => {
+            if (activeFileIndex !== -1) {
+                updateBaseScale();
+                renderPage().catch(console.error);
+            }
+        });
+        resizeObserver.observe(previewWrapper);
+
+        // Fungsi rename dan merge (tidak berubah)
         async function renameAndDownloadFile(index, newName) {
             const file = uploadedFiles[index];
             let finalName = newName.trim();
@@ -666,7 +774,6 @@
                 link.download = finalName;
                 link.click();
                 URL.revokeObjectURL(link.href);
-                
                 file.displayName = finalName;
                 file.isRenamed = true;
                 if (activeFileIndex === index) {
@@ -709,7 +816,6 @@
             };
         }
 
-        // Merge PDF
         async function mergePDFs() {
             if (uploadedFiles.length < 2) {
                 showModal('Informasi', 'Minimal 2 file untuk digabung.');
@@ -738,7 +844,7 @@
             finally { loadingMsg.classList.add('hidden'); }
         }
 
-        // Reorder drag & drop
+        // Drag & drop reorder
         let dragSrcIndex = null;
         function handleDragStart(e, index) {
             dragSrcIndex = index;
@@ -896,7 +1002,12 @@
         prevBtn.addEventListener('click', () => changePage(-1));
         nextBtn.addEventListener('click', () => changePage(1));
         kasihTipsBtn.addEventListener('click', showTipsModal);
-        window.addEventListener('resize', () => { if (activeFileIndex !== -1) renderPage(); });
+        window.addEventListener('resize', () => { 
+            if (activeFileIndex !== -1) {
+                updateBaseScale();
+                renderPage();
+            }
+        });
         renderFileList();
     })();
 </script>
