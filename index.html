@@ -10,16 +10,46 @@
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: #F8F9FE;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Header Floating Center */
+        .header-floating {
+            text-align: center;
+            padding: 1rem 1.5rem 0.5rem 1.5rem;
+            background: #F8F9FE;
+            flex-shrink: 0;
+        }
+        /* Main Content - takes remaining space, scroll only inside */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 1rem 0.5rem 1rem;
+        }
+        /* Custom scrollbar */
+        .main-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .main-content::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        .main-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
         }
         .app-layout {
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            padding: 1rem;
         }
         .file-manager {
             background: white;
@@ -136,7 +166,6 @@
         @media (min-width: 768px) {
             .app-layout {
                 flex-direction: row;
-                padding: 1.5rem;
             }
             .file-manager {
                 width: 340px;
@@ -152,16 +181,18 @@
                 gap: 0.5rem;
             }
         }
-        footer {
-            border-top: 1px solid #E8E9F1;
-            margin-top: 2rem;
-            padding: 1rem;
+        /* Footer Floating */
+        .footer-floating {
+            flex-shrink: 0;
             text-align: center;
-            color: #9ca3af;
+            padding: 0.75rem;
+            background: #F8F9FE;
+            border-top: 1px solid #E8E9F1;
             font-size: 0.75rem;
+            color: #9ca3af;
         }
         .file-list-container {
-            max-height: 350px;
+            max-height: 280px;
             overflow-y: auto;
             flex: 1;
         }
@@ -206,93 +237,105 @@
         .nav-btn:hover:not(:disabled) {
             background: #d1d5db;
         }
+        /* Make preview container height reasonable on desktop */
+        .preview-container .bg-white {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .preview-square {
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
 
-<!-- Header -->
-<div class="px-4 pt-6 pb-2 max-w-7xl mx-auto">
-    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight" style="color:#1F2024">QC‑PDF</h1>
-    <p class="text-base text-gray-500 mt-1">Quality Control PDFs Files</p>
+<!-- Header Floating Center -->
+<div class="header-floating">
+    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight" style="color:#1F2024">QC‑PDF</h1>
+    <p class="text-sm text-gray-500 mt-0.5">Quality Control PDFs Files</p>
 </div>
 
-<div class="app-layout max-w-7xl mx-auto">
-    <!-- File Manager Sidebar -->
-    <div class="file-manager">
-        <div class="p-4 border-b border-gray-100">
-            <h2 class="font-bold text-lg flex items-center gap-2 mb-3">
-                <i class="fas fa-files text-blue-500"></i> File PDF
-            </h2>
-            <!-- Drag & Drop Area + Upload CTA Utama -->
-            <div id="dragDropArea" class="drag-area p-4 text-center cursor-pointer">
-                <input type="file" id="pdfUploadInput" accept="application/pdf" multiple class="hidden">
-                <i class="fas fa-cloud-upload-alt text-3xl text-blue-400 mb-2"></i>
-                <p class="text-sm font-medium">Klik atau seret file PDF ke sini</p>
-                <p class="text-xs text-gray-400 mt-1">Maksimal banyak file</p>
-                <button id="uploadBtn" class="btn-primary text-sm mt-2 w-full justify-center">
-                    <i class="fas fa-upload"></i> Pilih File PDF
-                </button>
+<!-- Main Content (scrollable) -->
+<div class="main-content">
+    <div class="app-layout max-w-7xl mx-auto">
+        <!-- File Manager Sidebar -->
+        <div class="file-manager">
+            <div class="p-4 border-b border-gray-100">
+                <h2 class="font-bold text-lg flex items-center gap-2 mb-3">
+                    <i class="fas fa-files text-blue-500"></i> File PDF
+                </h2>
+                <!-- Drag & Drop Area + Upload CTA Utama -->
+                <div id="dragDropArea" class="drag-area p-4 text-center cursor-pointer">
+                    <input type="file" id="pdfUploadInput" accept="application/pdf" multiple class="hidden">
+                    <i class="fas fa-cloud-upload-alt text-3xl text-blue-400 mb-2"></i>
+                    <p class="text-sm font-medium">Klik atau seret file PDF ke sini</p>
+                    <p class="text-xs text-gray-400 mt-1">Maksimal banyak file</p>
+                    <button id="uploadBtn" class="btn-primary text-sm mt-2 w-full justify-center">
+                        <i class="fas fa-upload"></i> Pilih File PDF
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Daftar File PDF -->
+            <div class="p-2 flex-1">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <span class="text-xs font-semibold text-gray-400">DAFTAR FILE</span>
+                    <button id="clearAllBtn" class="clear-all-btn"><i class="fas fa-trash-alt"></i> Clear all</button>
+                </div>
+                <div id="fileListContainer" class="file-list-container">
+                    <div class="text-center text-gray-400 py-8 text-sm">Belum ada PDF. Upload file.</div>
+                </div>
             </div>
         </div>
-        
-        <!-- Daftar File PDF -->
-        <div class="p-2 flex-1">
-            <div class="flex justify-between items-center mb-2 px-1">
-                <span class="text-xs font-semibold text-gray-400">DAFTAR FILE</span>
-                <button id="clearAllBtn" class="clear-all-btn"><i class="fas fa-trash-alt"></i> Clear all</button>
-            </div>
-            <div id="fileListContainer" class="file-list-container">
-                <div class="text-center text-gray-400 py-8 text-sm">Belum ada PDF. Upload file.</div>
+
+        <!-- Preview Area -->
+        <div class="preview-container flex-1">
+            <div class="bg-white rounded-2xl shadow-sm p-4">
+                <!-- Detail Panel -->
+                <div id="infoPanel" class="mb-4 p-3 bg-gray-50 rounded-xl">
+                    <div class="flex flex-col md:flex-row md:justify-between gap-3">
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide">Detail</p>
+                            <p id="activeFileName" class="font-bold text-base break-all">—</p>
+                        </div>
+                        <div class="info-grid text-sm">
+                            <div><span class="font-semibold">Ukuran file:</span> <span id="fileSizeMB">— MB</span></div>
+                            <div><span class="font-semibold">Print Size (WxH):</span> <span id="printSizeCm">— cm</span></div>
+                            <div><span class="font-semibold">Page:</span> <span id="numPages">—</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Square -->
+                <div id="pdfContainer" class="preview-square">
+                    <div id="pdfWrapper" class="pdf-wrapper">
+                        <canvas id="pdfCanvas" style="display: block;"></canvas>
+                    </div>
+                    <div id="loadingMsg" class="loading-spinner hidden">
+                        <i class="fas fa-spinner fa-spin"></i> Memuat...
+                    </div>
+                </div>
+
+                <!-- Page Navigation -->
+                <div class="page-nav">
+                    <button id="prevPage" class="nav-btn" disabled>
+                        <i class="fas fa-chevron-left"></i> Prev
+                    </button>
+                    <span class="text-sm font-medium">Halaman <span id="currentPage">1</span> / <span id="totalPages">—</span></span>
+                    <button id="nextPage" class="nav-btn" disabled>
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Preview Area -->
-    <div class="preview-container flex-1">
-        <div class="bg-white rounded-2xl shadow-sm p-4">
-            <!-- Detail Panel -->
-            <div id="infoPanel" class="mb-4 p-3 bg-gray-50 rounded-xl">
-                <div class="flex flex-col md:flex-row md:justify-between gap-3">
-                    <div>
-                        <p class="text-xs text-gray-400 uppercase tracking-wide">Detail</p>
-                        <p id="activeFileName" class="font-bold text-base break-all">—</p>
-                    </div>
-                    <div class="info-grid text-sm">
-                        <div><span class="font-semibold">Ukuran file:</span> <span id="fileSizeMB">— MB</span></div>
-                        <div><span class="font-semibold">Print Size (WxH):</span> <span id="printSizeCm">— cm</span></div>
-                        <div><span class="font-semibold">Page:</span> <span id="numPages">—</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Preview Square -->
-            <div id="pdfContainer" class="preview-square">
-                <div id="pdfWrapper" class="pdf-wrapper">
-                    <canvas id="pdfCanvas" style="display: block;"></canvas>
-                </div>
-                <div id="loadingMsg" class="loading-spinner hidden">
-                    <i class="fas fa-spinner fa-spin"></i> Memuat...
-                </div>
-            </div>
-
-            <!-- Page Navigation -->
-            <div class="page-nav">
-                <button id="prevPage" class="nav-btn" disabled>
-                    <i class="fas fa-chevron-left"></i> Prev
-                </button>
-                <span class="text-sm font-medium">Halaman <span id="currentPage">1</span> / <span id="totalPages">—</span></span>
-                <button id="nextPage" class="nav-btn" disabled>
-                    Next <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-    </div>
 </div>
 
-<!-- Footer -->
-<footer>
+<!-- Footer Floating -->
+<div class="footer-floating">
     QC-PDF 2026 Made with Herry
-</footer>
+</div>
 
 <script>
     (function(){
@@ -300,7 +343,7 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
         // State
-        let uploadedFiles = [];      // { file, name, sizeMB, numPages, pdfDoc, pageDimensionsCm, arrayBuffer }
+        let uploadedFiles = [];
         let activeFileIndex = -1;
         let currentPage = 1;
         let currentPdfDoc = null;
@@ -347,7 +390,6 @@
             try {
                 const page = await currentPdfDoc.getPage(currentPage);
                 
-                // Hitung scale agar pas di container square (1:1)
                 const containerRect = container.getBoundingClientRect();
                 const viewportRaw = page.getViewport({ scale: 1 });
                 const scaleX = (containerRect.width - 20) / viewportRaw.width;
@@ -512,7 +554,6 @@
             uploadInput.value = '';
         });
 
-        // Drag & Drop
         dragArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             dragArea.classList.add('drag-over');
