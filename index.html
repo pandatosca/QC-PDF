@@ -7,9 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <style>
-        /* ----- GUIDESTYLE BLUE ----- */
         :root {
             --blue-500: #2897FF;
             --blue-400: #6FBAFF;
@@ -22,11 +22,7 @@
             --white: #FFFFFF;
             --gray-700: #8F9098;
             --gray-800: #71727A;
-            --gray-900: #494A50;
             --black: #1F2024;
-            --success: #298267;
-            --warning: #E86339;
-            --error: #ED3241;
             --font-sans: 'Inter', system-ui, sans-serif;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -39,27 +35,15 @@
             display: flex;
             flex-direction: column;
         }
-        /* HEADER SIMPEL & RAPI */
-        .header-simple {
-            text-align: center;
+        .header-left {
+            text-align: left;
             padding: 1.25rem 1.5rem 0.75rem;
             background: var(--gray-100);
             border-bottom: 1px solid var(--gray-200);
             flex-shrink: 0;
         }
-        .header-simple h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            color: var(--black);
-        }
-        .header-simple p {
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--gray-700);
-            margin-top: 0.2rem;
-        }
-        /* MAIN CONTENT */
+        .header-left h1 { font-size: 2rem; font-weight: 800; color: var(--black); }
+        .header-left p { font-size: 0.8rem; font-weight: 500; color: var(--gray-700); margin-top: 0.2rem; }
         .main-content {
             flex: 1;
             overflow-y: auto;
@@ -68,13 +52,34 @@
         .main-content::-webkit-scrollbar { width: 6px; }
         .main-content::-webkit-scrollbar-track { background: var(--gray-200); border-radius: 10px; }
         .main-content::-webkit-scrollbar-thumb { background: var(--gray-400); border-radius: 10px; }
-        .app-layout {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-            max-width: 1280px;
-            margin: 0 auto;
+        
+        @media (min-width: 768px) {
+            .app-layout {
+                display: grid;
+                grid-template-columns: 320px 1fr 280px;
+                gap: 1.25rem;
+                align-items: start;
+                max-width: 1280px;
+                margin: 0 auto;
+            }
+            .file-manager { grid-column: 1; }
+            .preview-container { grid-column: 2; }
+            .info-sidebar { grid-column: 3; }
         }
+        
+        @media (max-width: 767px) {
+            .app-layout {
+                display: flex;
+                flex-direction: column;
+                gap: 1.25rem;
+                max-width: 1280px;
+                margin: 0 auto;
+            }
+            .info-sidebar { order: 2; }
+            .preview-container { order: 1; }
+            .file-manager { order: 0; }
+        }
+        
         .card-guidestyle {
             background: var(--white);
             border-radius: 1rem;
@@ -96,6 +101,19 @@
             transition: all 0.2s;
         }
         .btn-primary:hover { background-color: #1a6fc9; transform: translateY(-1px); }
+        .btn-secondary {
+            background: var(--gray-200);
+            border: none;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-secondary:hover { background: var(--gray-300); }
         .drag-area {
             border: 2px dashed var(--gray-400);
             border-radius: 1rem;
@@ -110,22 +128,32 @@
             align-items: center;
             padding: 0.75rem;
             border-radius: 0.75rem;
-            cursor: pointer;
+            cursor: grab;
             border-left: 3px solid transparent;
             margin-bottom: 0.25rem;
+            background: white;
+            transition: background 0.2s;
         }
+        .file-item.dragging { opacity: 0.5; cursor: grabbing; }
         .file-item.active { background: var(--blue-50); border-left-color: var(--blue-500); }
         .file-item:hover:not(.active) { background: var(--gray-200); }
-        .delete-file-btn {
+        .file-actions {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+        }
+        .rename-btn, .delete-file-btn {
             background: none;
             border: none;
             color: var(--gray-700);
             cursor: pointer;
-            padding: 0.25rem 0.5rem;
+            padding: 0.25rem 0.4rem;
             border-radius: 0.5rem;
+            font-size: 0.75rem;
         }
-        .delete-file-btn:hover { background: #FFE2E5; color: var(--error); }
-        .clear-all-btn {
+        .rename-btn:hover { background: var(--gray-300); color: var(--blue-500); }
+        .delete-file-btn:hover { background: #FFE2E5; color: #ED3241; }
+        .clear-all-btn, .merge-btn {
             font-size: 0.7rem;
             padding: 0.25rem 0.5rem;
             background: transparent;
@@ -133,16 +161,22 @@
             border: none;
             cursor: pointer;
         }
-        .clear-all-btn:hover { color: var(--error); }
-        .info-panel {
+        .merge-btn:hover { color: var(--blue-500); }
+        .clear-all-btn:hover { color: #ED3241; }
+        .info-vertical {
             background: var(--gray-200);
             border-radius: 1rem;
             padding: 1rem;
         }
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 0.75rem;
+        .info-vertical-item {
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-300);
+            padding-bottom: 0.75rem;
+        }
+        .info-vertical-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
         }
         .info-label {
             font-size: 0.7rem;
@@ -150,21 +184,23 @@
             color: var(--gray-800);
             text-transform: uppercase;
             letter-spacing: 0.03em;
+            margin-bottom: 0.25rem;
         }
         .info-value {
             font-weight: 600;
             font-size: 0.875rem;
             color: var(--black);
+            word-break: break-word;
         }
-        /* Preview tanpa artboard */
         .preview-wrapper {
             background: transparent;
             border-radius: 1rem;
-            overflow: auto;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 0.5rem;
+            min-height: 400px;
         }
         .pdf-wrapper {
             position: relative;
@@ -178,13 +214,20 @@
             max-width: 100%;
             height: auto;
         }
-        /* Pagination kecil */
-        .pagination-simple {
+        .controls-bar {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
             gap: 0.75rem;
             margin-top: 0.75rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--gray-200);
+        }
+        .pagination-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
         .page-btn {
             background: var(--gray-200);
@@ -194,7 +237,6 @@
             border-radius: 2rem;
             font-size: 0.75rem;
             font-weight: 500;
-            color: var(--black);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -202,11 +244,7 @@
         }
         .page-btn:hover:not(:disabled) { background: var(--gray-300); }
         .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .page-indicator {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--gray-800);
-        }
+        .page-indicator { font-size: 0.75rem; font-weight: 500; color: var(--gray-800); }
         .footer-floating {
             flex-shrink: 0;
             text-align: center;
@@ -217,7 +255,7 @@
             color: var(--gray-700);
         }
         .file-list-container {
-            max-height: 320px;
+            max-height: 350px;
             overflow-y: auto;
         }
         .loading-spinner {
@@ -234,28 +272,52 @@
             gap: 0.5rem;
             z-index: 10;
         }
-        @media (min-width: 768px) {
-            .app-layout { flex-direction: row; }
-            .file-manager { width: 320px; flex-shrink: 0; }
-            .preview-container { flex: 1; }
+        .rename-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
         }
-        @media (max-width: 640px) {
-            .info-grid { grid-template-columns: 1fr; }
-            .header-simple h1 { font-size: 1.75rem; }
+        .rename-modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 320px;
+        }
+        .toast-message {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--black);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            z-index: 60;
+            animation: fadeOut 2s ease forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
         }
     </style>
 </head>
 <body>
 
-<!-- HEADER SIMPEL (tanpa statistik) -->
-<div class="header-simple">
+<div class="header-left">
     <h1>QC‑PDF</h1>
     <p>Quality Control PDFs Files</p>
 </div>
 
 <div class="main-content">
     <div class="app-layout">
-        <!-- FILE MANAGER -->
+        <!-- KOLOM KIRI: File Manager -->
         <div class="file-manager card-guidestyle">
             <div class="p-4 border-b border-gray-100">
                 <h2 class="font-bold text-lg flex items-center gap-2 mb-3">
@@ -274,7 +336,10 @@
             <div class="p-2">
                 <div class="flex justify-between items-center mb-2 px-1">
                     <span class="text-xs font-semibold" style="color: var(--gray-800);">DAFTAR FILE</span>
-                    <button id="clearAllBtn" class="clear-all-btn"><i class="fas fa-trash-alt"></i> Clear all</button>
+                    <div>
+                        <button id="mergePdfBtn" class="merge-btn"><i class="fas fa-object-group"></i> Merge</button>
+                        <button id="clearAllBtn" class="clear-all-btn"><i class="fas fa-trash-alt"></i> Clear all</button>
+                    </div>
                 </div>
                 <div id="fileListContainer" class="file-list-container">
                     <div class="text-center py-8 text-sm" style="color: var(--gray-700);">Belum ada PDF. Upload file.</div>
@@ -282,26 +347,9 @@
             </div>
         </div>
 
-        <!-- PREVIEW AREA -->
-        <div class="preview-container flex-1">
+        <!-- KOLOM TENGAH: Preview PDF -->
+        <div class="preview-container">
             <div class="card-guidestyle p-4 h-full flex flex-col">
-                <!-- DETAIL PANEL (tanpa dimensi halaman aktif) -->
-                <div class="info-panel mb-4">
-                    <div class="flex flex-col md:flex-row md:justify-between gap-3">
-                        <div>
-                            <p class="info-label">Detail Dokumen</p>
-                            <p id="activeFileName" class="font-bold text-base break-all">—</p>
-                        </div>
-                        <div class="info-grid">
-                            <div><div class="info-label">Ukuran file</div><div class="info-value" id="fileSizeMB">— MB</div></div>
-                            <div><div class="info-label">Print Size (WxH)</div><div class="info-value" id="printSizeCm">— cm</div></div>
-                            <div><div class="info-label">Terakhir diubah</div><div class="info-value" id="fileModified">—</div></div>
-                            <div><div class="info-label">Total Halaman</div><div class="info-value" id="numPages">—</div></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PREVIEW (tanpa artboard putih) -->
                 <div id="previewWrapper" class="preview-wrapper">
                     <div id="pdfWrapper" class="pdf-wrapper">
                         <canvas id="pdfCanvas"></canvas>
@@ -310,12 +358,40 @@
                         <i class="fas fa-spinner fa-spin"></i> Memuat...
                     </div>
                 </div>
+                <div class="controls-bar">
+                    <div class="pagination-group">
+                        <button id="prevPage" class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                        <span class="page-indicator"><span id="currentPage">1</span> / <span id="totalPages">—</span></span>
+                        <button id="nextPage" class="page-btn" disabled><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                <!-- PAGINATION KECIL -->
-                <div class="pagination-simple">
-                    <button id="prevPage" class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
-                    <span class="page-indicator"><span id="currentPage">1</span> / <span id="totalPages">—</span></span>
-                    <button id="nextPage" class="page-btn" disabled><i class="fas fa-chevron-right"></i></button>
+        <!-- KOLOM KANAN: Informasi Detail Vertikal -->
+        <div class="info-sidebar">
+            <div class="card-guidestyle p-4">
+                <div class="info-vertical">
+                    <div class="info-vertical-item">
+                        <div class="info-label">Nama File</div>
+                        <div class="info-value" id="activeFileName" style="word-break: break-word;">—</div>
+                    </div>
+                    <div class="info-vertical-item">
+                        <div class="info-label">Ukuran file</div>
+                        <div class="info-value" id="fileSizeMB">— MB</div>
+                    </div>
+                    <div class="info-vertical-item">
+                        <div class="info-label">Print Size (WxH)</div>
+                        <div class="info-value" id="printSizeCm">— cm</div>
+                    </div>
+                    <div class="info-vertical-item">
+                        <div class="info-label">Terakhir diubah</div>
+                        <div class="info-value" id="fileModified">—</div>
+                    </div>
+                    <div class="info-vertical-item">
+                        <div class="info-label">Total Halaman</div>
+                        <div class="info-value" id="numPages">—</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -330,10 +406,11 @@
     (function(){
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        let uploadedFiles = []; // { file, name, sizeMB, numPages, pdfDoc, pageDimensionsCm, arrayBuffer, lastModifiedDate }
+        let uploadedFiles = [];
         let activeFileIndex = -1;
         let currentPage = 1;
         let currentPdfDoc = null;
+        let nextId = 1;
         
         // DOM
         const fileListDiv = document.getElementById('fileListContainer');
@@ -341,6 +418,7 @@
         const uploadBtn = document.getElementById('uploadBtn');
         const dragArea = document.getElementById('dragDropArea');
         const clearAllBtn = document.getElementById('clearAllBtn');
+        const mergePdfBtn = document.getElementById('mergePdfBtn');
         const canvas = document.getElementById('pdfCanvas');
         const ctx = canvas.getContext('2d');
         const activeFileNameSpan = document.getElementById('activeFileName');
@@ -354,6 +432,14 @@
         const totalPagesSpan = document.getElementById('totalPages');
         const loadingMsg = document.getElementById('loadingMsg');
         const previewWrapper = document.getElementById('previewWrapper');
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.innerText = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
 
         function pointsToCm(points) { return (points * 2.54 / 72).toFixed(2); }
 
@@ -370,8 +456,10 @@
                 const page = await currentPdfDoc.getPage(currentPage);
                 const containerRect = previewWrapper.getBoundingClientRect();
                 const viewportRaw = page.getViewport({ scale: 1 });
-                const scale = Math.min((containerRect.width - 32) / viewportRaw.width, 2.5);
-                const viewport = page.getViewport({ scale: Math.max(scale, 0.3) });
+                const scaleX = (containerRect.width - 20) / viewportRaw.width;
+                const scaleY = (containerRect.height - 20) / viewportRaw.height;
+                const scale = Math.min(scaleX, scaleY, 2.5);
+                const viewport = page.getViewport({ scale: Math.max(scale, 0.2) });
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
                 canvas.style.maxWidth = '100%';
@@ -385,7 +473,7 @@
             if (index === activeFileIndex && currentPdfDoc) return;
             activeFileIndex = index;
             const file = uploadedFiles[activeFileIndex];
-            activeFileNameSpan.innerText = file.name;
+            activeFileNameSpan.innerText = file.displayName || file.name;
             fileSizeSpan.innerText = `${file.sizeMB} MB`;
             numPagesSpan.innerText = file.numPages;
             const dimFirst = file.pageDimensionsCm[0];
@@ -415,6 +503,124 @@
             nextBtn.disabled = currentPage >= uploadedFiles[activeFileIndex].numPages;
         }
 
+        // Fungsi rename dengan download file baru
+        async function renameAndDownloadFile(index, newName) {
+            const file = uploadedFiles[index];
+            const oldDisplayName = file.displayName || file.name;
+            
+            // Pastikan nama memiliki ekstensi .pdf
+            let finalName = newName.trim();
+            if (!finalName.toLowerCase().endsWith('.pdf')) {
+                finalName = finalName + '.pdf';
+            }
+            
+            try {
+                // Buat file baru dengan konten yang sama, nama berbeda
+                const blob = new Blob([file.arrayBuffer], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = finalName;
+                link.click();
+                URL.revokeObjectURL(link.href);
+                
+                // Update display name di aplikasi
+                file.displayName = finalName;
+                if (activeFileIndex === index) {
+                    activeFileNameSpan.innerText = finalName;
+                }
+                renderFileList();
+                
+                showToast(`File berhasil diunduh dengan nama: ${finalName}`);
+            } catch(err) {
+                console.error(err);
+                showToast('Gagal mengunduh file dengan nama baru');
+            }
+        }
+
+        // Modal rename dengan opsi download
+        function showRenameModal(index, currentName) {
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'rename-modal';
+            modalDiv.innerHTML = `
+                <div class="rename-modal-content">
+                    <h3 class="font-bold mb-2">Ganti Nama File</h3>
+                    <input type="text" id="renameInput" class="w-full border rounded-lg p-2 mb-3" value="${escapeHtml(currentName)}">
+                    <p class="text-xs text-gray-500 mb-3">*File akan diunduh dengan nama baru (konten tetap sama)</p>
+                    <div class="flex justify-end gap-2">
+                        <button id="cancelRename" class="px-3 py-1 border rounded-lg">Batal</button>
+                        <button id="saveRename" class="px-3 py-1 bg-blue-500 text-white rounded-lg">Simpan & Unduh</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalDiv);
+            const input = modalDiv.querySelector('#renameInput');
+            input.focus();
+            modalDiv.querySelector('#cancelRename').onclick = () => modalDiv.remove();
+            modalDiv.querySelector('#saveRename').onclick = async () => {
+                const newName = input.value.trim();
+                if (newName) {
+                    await renameAndDownloadFile(index, newName);
+                }
+                modalDiv.remove();
+            };
+        }
+
+        // Merge PDF
+        async function mergePDFs() {
+            if (uploadedFiles.length < 2) {
+                alert("Minimal 2 file untuk digabung.");
+                return;
+            }
+            loadingMsg.classList.remove('hidden');
+            try {
+                const mergedPdf = await PDFLib.PDFDocument.create();
+                for (let file of uploadedFiles) {
+                    const pdfDoc = await PDFLib.PDFDocument.load(file.arrayBuffer);
+                    const pages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                    for (let page of pages) mergedPdf.addPage(page);
+                }
+                const pdfBytes = await mergedPdf.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `QC-Merged_${new Date().toISOString().slice(0,19)}.pdf`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+                showToast("Merge berhasil!");
+            } catch(err) { console.error(err); alert("Gagal merge PDF."); }
+            finally { loadingMsg.classList.add('hidden'); }
+        }
+
+        // Reorder drag & drop
+        let dragSrcIndex = null;
+        function handleDragStart(e, index) {
+            dragSrcIndex = index;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', index);
+            e.target.classList.add('dragging');
+        }
+        function handleDragOver(e, index) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+        function handleDrop(e, targetIndex) {
+            e.preventDefault();
+            if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
+            const moved = uploadedFiles[dragSrcIndex];
+            uploadedFiles.splice(dragSrcIndex, 1);
+            uploadedFiles.splice(targetIndex, 0, moved);
+            if (activeFileIndex === dragSrcIndex) activeFileIndex = targetIndex;
+            else if (activeFileIndex > dragSrcIndex && activeFileIndex <= targetIndex) activeFileIndex--;
+            else if (activeFileIndex < dragSrcIndex && activeFileIndex >= targetIndex) activeFileIndex++;
+            renderFileList();
+            if (activeFileIndex !== -1) setActiveFile(activeFileIndex);
+            dragSrcIndex = null;
+        }
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            dragSrcIndex = null;
+        }
+
         async function handleUpload(files) {
             for (const file of files) {
                 if (file.type !== 'application/pdf') continue;
@@ -428,8 +634,10 @@
                 }
                 const lastModifiedDate = new Date(file.lastModified).toLocaleDateString('id-ID');
                 uploadedFiles.push({
+                    id: nextId++,
                     file: file,
                     name: file.name,
+                    displayName: file.name,
                     sizeMB: sizeMB,
                     numPages: numPages,
                     pdfDoc: pdfDoc,
@@ -486,15 +694,34 @@
                 const isActive = idx === activeFileIndex;
                 const div = document.createElement('div');
                 div.className = `file-item ${isActive ? 'active' : ''}`;
+                div.draggable = true;
+                div.setAttribute('data-index', idx);
                 div.innerHTML = `
                     <div class="flex-1 min-w-0">
-                        <div class="font-medium truncate">${escapeHtml(f.name)}</div>
+                        <div class="font-medium truncate">${escapeHtml(f.displayName)}</div>
                         <div class="text-xs" style="color: var(--gray-800);">${f.sizeMB} MB • ${f.numPages} halaman</div>
                     </div>
-                    <button class="delete-file-btn" data-index="${idx}"><i class="fas fa-times-circle"></i></button>
+                    <div class="file-actions">
+                        <button class="rename-btn" data-index="${idx}" title="Ganti nama & unduh"><i class="fas fa-pen"></i></button>
+                        <button class="delete-file-btn" data-index="${idx}" title="Hapus"><i class="fas fa-times-circle"></i></button>
+                    </div>
                 `;
-                div.addEventListener('click', (e) => { if (!e.target.closest('.delete-file-btn')) setActiveFile(idx); });
-                div.querySelector('.delete-file-btn').addEventListener('click', (e) => { e.stopPropagation(); removeFile(idx); });
+                div.addEventListener('dragstart', (e) => handleDragStart(e, idx));
+                div.addEventListener('dragover', (e) => handleDragOver(e, idx));
+                div.addEventListener('drop', (e) => handleDrop(e, idx));
+                div.addEventListener('dragend', handleDragEnd);
+                div.addEventListener('click', (e) => {
+                    if (e.target.closest('.rename-btn') || e.target.closest('.delete-file-btn')) return;
+                    setActiveFile(idx);
+                });
+                div.querySelector('.rename-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showRenameModal(idx, f.displayName);
+                });
+                div.querySelector('.delete-file-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeFile(idx);
+                });
                 fileListDiv.appendChild(div);
             });
         }
@@ -514,6 +741,7 @@
         });
         dragArea.addEventListener('click', () => uploadInput.click());
         clearAllBtn.addEventListener('click', clearAllFiles);
+        mergePdfBtn.addEventListener('click', mergePDFs);
         prevBtn.addEventListener('click', () => changePage(-1));
         nextBtn.addEventListener('click', () => changePage(1));
         window.addEventListener('resize', () => { if (activeFileIndex !== -1) renderPage(); });
