@@ -10,6 +10,7 @@
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <style>
+        /* ----- GUIDESTYLE BLUE + DARK MODE SUPPORT ----- */
         :root {
             --blue-500: #2897FF;
             --blue-400: #6FBAFF;
@@ -27,6 +28,30 @@
             --success-light: #E7F4E8;
             --error: #ED3241;
             --font-sans: 'Inter', system-ui, sans-serif;
+            
+            /* Transisi halus untuk mode change */
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        /* Dark mode override */
+        .dark {
+            --gray-100: #1a1c23;
+            --gray-200: #2a2d37;
+            --gray-300: #3a3e4a;
+            --gray-400: #4a4f5e;
+            --white: #252932;
+            --gray-700: #a0a5b5;
+            --gray-800: #c0c5d5;
+            --black: #eef2ff;
+            --blue-50: #1e2a3a;
+            --success-light: #1e3a2f;
+        }
+        /* Pastikan elemen dengan background putih ikut berubah */
+        body, .card-guidestyle, .drag-area, .file-item, .info-vertical, .preview-wrapper, .footer-new, .modal-guidestyle-content, .rename-modal-content {
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        /* Fix untuk canvas dan gambar QRIS tetap terlihat baik */
+        canvas, .qris-img {
+            background: white; /* tetap putih agar isi PDF jelas */
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -39,6 +64,9 @@
             flex-direction: column;
         }
         .header-left {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             text-align: left;
             padding: 1.25rem 1.5rem 0.75rem;
             background: var(--gray-100);
@@ -47,6 +75,19 @@
         }
         .header-left h1 { font-size: 2rem; font-weight: 800; color: var(--black); }
         .header-left p { font-size: 0.8rem; font-weight: 500; color: var(--gray-700); margin-top: 0.2rem; }
+        .theme-toggle {
+            background: var(--gray-200);
+            border: none;
+            border-radius: 40px;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            color: var(--black);
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .theme-toggle:hover {
+            background: var(--gray-300);
+        }
         .main-content {
             flex: 1;
             overflow-y: auto;
@@ -135,7 +176,7 @@
             cursor: grab;
             border-left: 3px solid transparent;
             margin-bottom: 0.25rem;
-            background: white;
+            background: var(--white);
             transition: background 0.2s;
         }
         .file-item.renamed {
@@ -288,6 +329,9 @@
                 backdrop-filter: blur(8px);
                 background-color: rgba(248, 249, 254, 0.95);
             }
+            .dark .footer-new {
+                background-color: rgba(26, 28, 35, 0.95);
+            }
         }
         
         .footer-left {
@@ -431,8 +475,13 @@
 <body>
 
 <div class="header-left">
-    <h1>QC‑PDF</h1>
-    <p>Quality Control PDFs Files</p>
+    <div>
+        <h1>QC‑PDF</h1>
+        <p>Quality Control PDFs Files</p>
+    </div>
+    <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle dark/light mode">
+        <i class="fas fa-moon"></i> <span id="themeText">Dark</span>
+    </button>
 </div>
 
 <div class="main-content">
@@ -529,6 +578,54 @@
 
 <script>
     (function(){
+        // ========== DARK MODE TOGGLE ==========
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeTextSpan = document.getElementById('themeText');
+        const htmlElement = document.documentElement;
+        
+        // Cek preferensi dari localStorage atau sistem
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            htmlElement.classList.add('dark');
+            themeTextSpan.innerText = 'Light';
+            themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> <span id="themeText">Light</span>';
+        } else if (savedTheme === 'light') {
+            htmlElement.classList.remove('dark');
+            themeTextSpan.innerText = 'Dark';
+            themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> <span id="themeText">Dark</span>';
+        } else {
+            // Cek preferensi sistem
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                htmlElement.classList.add('dark');
+                themeTextSpan.innerText = 'Light';
+                themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> <span id="themeText">Light</span>';
+            } else {
+                htmlElement.classList.remove('dark');
+                themeTextSpan.innerText = 'Dark';
+                themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> <span id="themeText">Dark</span>';
+            }
+        }
+        
+        function toggleTheme() {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                themeTextSpan.innerText = 'Dark';
+                themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> <span id="themeText">Dark</span>';
+            } else {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                themeTextSpan.innerText = 'Light';
+                themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> <span id="themeText">Light</span>';
+            }
+            // Rerender PDF untuk menyesuaikan background container (opsional)
+            if (typeof renderPage === 'function' && activeFileIndex !== -1) {
+                renderPage().catch(console.error);
+            }
+        }
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        // ========== AKHIR DARK MODE ==========
+        
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
         let uploadedFiles = [];
