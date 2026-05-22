@@ -10,232 +10,15 @@
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <style>
-        /* ----- GUIDESTYLE BLUE + DARK MODE SUPPORT ----- */
-        :root {
-            --blue-500: #2897FF;
-            --blue-400: #6FBAFF;
-            --blue-200: #B4DBFF;
-            --blue-50: #EAF2FF;
-            --gray-100: #F8F9FE;
-            --gray-200: #E8E9F1;
-            --gray-300: #D4D6DD;
-            --gray-400: #C5C6CC;
-            --white: #FFFFFF;
-            --gray-700: #8F9098;
-            --gray-800: #71727A;
-            --black: #1F2024;
-            --success: #298267;
-            --success-light: #E7F4E8;
-            --error: #ED3241;
-            --font-sans: 'Inter', system-ui, sans-serif;
-            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-        }
-        .dark {
-            --gray-100: #1a1c23;
-            --gray-200: #2a2d37;
-            --gray-300: #3a3e4a;
-            --gray-400: #4a4f5e;
-            --white: #252932;
-            --gray-700: #a0a5b5;
-            --gray-800: #c0c5d5;
-            --black: #eef2ff;
-            --blue-50: #1e2a3a;
-            --success-light: #1e3a2f;
-        }
-        body, .card-guidestyle, .drag-area, .file-item, .info-vertical, .preview-wrapper, .footer-new, .modal-guidestyle-content, .rename-modal-content {
-            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-        }
-        canvas, .qris-img {
-            background: white;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: var(--font-sans);
-            background-color: var(--gray-100);
-            color: var(--black);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .header-left {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            text-align: left;
-            padding: 1.25rem 1.5rem 0.75rem;
-            background: var(--gray-100);
-            border-bottom: 1px solid var(--gray-200);
-            flex-shrink: 0;
-        }
-        .header-left h1 { font-size: 2rem; font-weight: 800; color: var(--black); }
-        .header-left p { font-size: 0.8rem; font-weight: 500; color: var(--gray-700); margin-top: 0.2rem; }
-        .theme-toggle {
-            background: var(--gray-200);
-            border: none;
-            border-radius: 40px;
-            padding: 0.4rem 0.8rem;
-            cursor: pointer;
-            color: var(--black);
-            font-size: 0.9rem;
-            transition: 0.2s;
-        }
-        .theme-toggle:hover { background: var(--gray-300); }
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-        @media (max-width: 767px) {
-            .main-content { padding-bottom: 5rem; }
-        }
-        .main-content::-webkit-scrollbar { width: 6px; }
-        .main-content::-webkit-scrollbar-track { background: var(--gray-200); border-radius: 10px; }
-        .main-content::-webkit-scrollbar-thumb { background: var(--gray-400); border-radius: 10px; }
-        
-        @media (min-width: 768px) {
-            .app-layout {
-                display: grid;
-                grid-template-columns: 320px 1fr 280px;
-                gap: 1.25rem;
-                align-items: stretch;
-                max-width: 1280px;
-                margin: 0 auto;
-            }
-            .file-manager, .preview-container, .info-sidebar {
-                display: flex;
-                flex-direction: column;
-            }
-            .file-manager .card-guidestyle, 
-            .preview-container .card-guidestyle, 
-            .info-sidebar .card-guidestyle {
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-            }
-        }
-        
-        @media (max-width: 767px) {
-            .app-layout {
-                display: flex;
-                flex-direction: column;
-                gap: 1.25rem;
-                max-width: 1280px;
-                margin: 0 auto;
-            }
-            .info-sidebar { order: 2; }
-            .preview-container { order: 1; }
-            .file-manager { order: 0; }
-        }
-        
-        .card-guidestyle {
-            background: var(--white);
-            border-radius: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            overflow: hidden;
-        }
-        .btn-primary {
-            background-color: var(--blue-500);
-            color: white;
-            font-weight: 600;
-            padding: 0.625rem 1.25rem;
-            border-radius: 40px;
-            font-size: 0.875rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-primary:hover { background-color: #1a6fc9; transform: translateY(-1px); }
-        .drag-area {
-            border: 2px dashed var(--gray-400);
-            border-radius: 1rem;
-            background: var(--white);
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .drag-area.drag-over { border-color: var(--blue-500); background: var(--blue-50); }
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem;
-            border-radius: 0.75rem;
-            cursor: grab;
-            border-left: 3px solid transparent;
-            margin-bottom: 0.25rem;
-            background: var(--white);
-            transition: background 0.2s;
-        }
-        .file-item.renamed {
-            background: var(--success-light);
-            border-left-color: var(--success);
-        }
-        .file-item.dragging { opacity: 0.5; cursor: grabbing; }
-        .file-item.active { background: var(--blue-50); border-left-color: var(--blue-500); }
-        .file-item.active.renamed { background: #d4f0e8; border-left-color: var(--success); }
-        .file-item:hover:not(.active) { background: var(--gray-200); }
-        .file-actions {
-            display: flex;
-            gap: 0.25rem;
-            align-items: center;
-        }
-        .rename-btn, .delete-file-btn {
-            background: none;
-            border: none;
-            color: var(--gray-700);
-            cursor: pointer;
-            padding: 0.25rem 0.4rem;
-            border-radius: 0.5rem;
-            font-size: 0.75rem;
-        }
-        .rename-btn:hover { background: var(--gray-300); color: var(--blue-500); }
-        .delete-file-btn:hover { background: #FFE2E5; color: var(--error); }
-        .clear-all-btn, .merge-btn {
-            font-size: 0.7rem;
-            padding: 0.25rem 0.5rem;
-            background: transparent;
-            color: var(--gray-700);
-            border: none;
-            cursor: pointer;
-        }
-        .merge-btn:hover { color: var(--blue-500); }
-        .clear-all-btn:hover { color: var(--error); }
-        .info-vertical {
-            background: var(--gray-200);
-            border-radius: 1rem;
-            padding: 1rem;
-            flex: 1;
-        }
-        .info-vertical-item {
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--gray-300);
-            padding-bottom: 0.75rem;
-        }
-        .info-vertical-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        .info-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--gray-800);
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            margin-bottom: 0.25rem;
-        }
-        .info-value {
-            font-weight: 600;
-            font-size: 0.875rem;
-            color: var(--black);
-            word-break: break-word;
-        }
-        /* Preview area dengan overflow untuk zoom & scroll */
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-track { background: #1e293b; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        /* Preview wrapper: ukuran tetap, scroll internal untuk zoom */
         .preview-wrapper {
-            background: var(--gray-100);
+            background: #f1f5f9;
             border-radius: 1rem;
             overflow: auto;
             display: flex;
@@ -245,735 +28,517 @@
             max-height: 70vh;
             position: relative;
         }
+        .dark .preview-wrapper {
+            background: #0f172a;
+        }
+        canvas {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: block;
+        }
         .empty-state {
             text-align: center;
-            color: var(--gray-700);
+            color: #64748b;
             padding: 2rem;
+        }
+        .dark .empty-state {
+            color: #94a3b8;
         }
         .empty-state i {
             font-size: 3rem;
             margin-bottom: 1rem;
             opacity: 0.5;
         }
-        .pdf-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-        canvas {
-            display: block;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            background: white;
-            border-radius: 0.5rem;
-        }
-        .controls-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            margin-top: 0.75rem;
-            padding-top: 0.5rem;
-            border-top: 1px solid var(--gray-200);
-        }
-        .zoom-indicator {
-            font-size: 0.7rem;
-            background: var(--gray-200);
-            padding: 0.2rem 0.6rem;
-            border-radius: 40px;
-            color: var(--gray-800);
-        }
-        .reset-zoom-btn {
-            background: var(--gray-200);
-            border: none;
-            padding: 0.2rem 0.6rem;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            color: var(--black);
-        }
-        .reset-zoom-btn:hover { background: var(--gray-300); }
-        .pagination-group {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .page-btn {
-            background: var(--gray-200);
-            border: none;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 2rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .page-btn:hover:not(:disabled) { background: var(--gray-300); }
-        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .page-indicator { font-size: 0.75rem; font-weight: 500; color: var(--gray-800); }
-        
-        /* Footer fixed di mobile, normal di desktop */
-        .footer-new {
-            flex-shrink: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 1.5rem;
-            background: var(--gray-100);
-            border-top: 1px solid var(--gray-200);
-            font-size: 0.75rem;
-        }
-        
-        @media (max-width: 767px) {
-            .footer-new {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background: var(--gray-100);
-                padding: 0.6rem 1rem;
-                z-index: 30;
-                box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
-                backdrop-filter: blur(8px);
-                background-color: rgba(248, 249, 254, 0.95);
-            }
-            .dark .footer-new {
-                background-color: rgba(26, 28, 35, 0.95);
-            }
-        }
-        
-        .footer-left {
-            color: var(--gray-700);
-        }
-        .footer-right {
-            color: var(--blue-500);
-            cursor: pointer;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-        .footer-right:hover {
-            color: #1a6fc9;
-        }
-        
-        .file-list-container {
-            max-height: 350px;
-            overflow-y: auto;
-            flex: 1;
-        }
-        .loading-spinner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255,255,255,0.95);
-            padding: 0.5rem 1rem;
-            border-radius: 40px;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            z-index: 10;
-            pointer-events: none;
-        }
-        .modal-guidestyle {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-        .modal-guidestyle-content {
-            background: var(--white);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            width: 90%;
-            max-width: 420px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .modal-guidestyle-content h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            color: var(--black);
-        }
-        .modal-guidestyle-content p {
-            font-size: 0.75rem;
-            color: var(--gray-700);
-            margin-bottom: 0.75rem;
-            line-height: 1.4;
-        }
-        .qris-img {
-            max-width: 200px;
-            margin: 0 auto 1rem auto;
-            display: block;
-            border-radius: 0.5rem;
-            background: white;
-            padding: 0.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .modal-close-btn {
-            background: var(--blue-500);
-            color: white;
-            border: none;
-            padding: 0.5rem 1.5rem;
-            border-radius: 40px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 0.5rem;
-        }
-        .modal-close-btn:hover {
-            background-color: #1a6fc9;
-        }
-        .rename-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-        .rename-modal-content {
-            background: var(--white);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            width: 90%;
-            max-width: 320px;
-        }
-        .rename-modal-content h3 {
-            font-size: 1.125rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-        }
-        .rename-modal-content input {
-            width: 100%;
-            border: 1px solid var(--gray-300);
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-        .rename-modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-        }
-        .rename-cancel {
-            background: var(--gray-200);
-            border: none;
-            padding: 0.4rem 1rem;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            cursor: pointer;
-        }
-        .rename-save {
-            background: var(--blue-500);
-            color: white;
-            border: none;
-            padding: 0.4rem 1rem;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            cursor: pointer;
-        }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 h-screen overflow-hidden flex flex-col font-sans antialiased">
 
-<div class="header-left">
-    <div>
-        <h1>QC‑PDF</h1>
-        <p>Quality Control PDFs Files</p>
-    </div>
-    <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle dark/light mode">
-        <i class="fas fa-moon"></i> <span id="themeText">Dark</span>
-    </button>
-</div>
+    <!-- Header dengan logo -->
+    <header class="flex justify-between items-center px-6 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-file-pdf text-3xl text-blue-600 dark:text-blue-400"></i>
+            <div>
+                <h1 class="text-2xl font-extrabold tracking-tight">QC‑PDF</h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Quality Control PDFs Files</p>
+            </div>
+        </div>
+        <button id="themeToggle" class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full p-2 text-gray-700 dark:text-gray-300 transition">
+            <i class="fas fa-moon dark:hidden"></i>
+            <i class="fas fa-sun hidden dark:inline"></i>
+        </button>
+    </header>
 
-<div class="main-content">
-    <div class="app-layout">
-        <!-- KOLOM KIRI: File Manager -->
-        <div class="file-manager">
-            <div class="card-guidestyle" style="display: flex; flex-direction: column; height: 100%;">
-                <div class="p-4 border-b border-gray-100">
-                    <h2 class="font-bold text-lg flex items-center gap-2 mb-3">
-                        <i class="fas fa-files" style="color: var(--blue-500);"></i> File PDF
-                    </h2>
-                    <div id="dragDropArea" class="drag-area p-4 text-center cursor-pointer">
-                        <input type="file" id="pdfUploadInput" accept="application/pdf" multiple class="hidden">
-                        <i class="fas fa-cloud-upload-alt text-3xl" style="color: var(--blue-500); margin-bottom: 0.5rem;"></i>
-                        <p class="text-sm font-medium">Klik atau seret file PDF ke sini</p>
-                        <p class="text-xs mt-1" style="color: var(--gray-800);">Mendukung banyak file</p>
-                        <button id="uploadBtn" class="btn-primary text-sm mt-3 w-full justify-center">
-                            <i class="fas fa-upload"></i> Pilih File PDF
-                        </button>
+    <!-- Main content -->
+    <main class="flex-1 overflow-auto p-4">
+        <div class="max-w-7xl mx-auto">
+            <!-- Grid 3 kolom -->
+            <div class="grid grid-cols-1 md:grid-cols-[320px_1fr_280px] gap-5">
+                
+                <!-- Kolom Kiri: File Manager -->
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col transition-all">
+                    <div class="p-4 border-b border-gray-200 dark:border-gray-800">
+                        <h2 class="font-bold text-lg flex items-center gap-2 text-gray-800 dark:text-gray-200">
+                            <i class="fas fa-folder-open text-blue-600 dark:text-blue-400"></i> File PDF
+                        </h2>
                     </div>
-                </div>
-                <div class="p-2" style="flex: 1; display: flex; flex-direction: column;">
-                    <div class="flex justify-between items-center mb-2 px-1">
-                        <span class="text-xs font-semibold" style="color: var(--gray-800);">DAFTAR FILE</span>
-                        <div>
-                            <button id="mergePdfBtn" class="merge-btn"><i class="fas fa-object-group"></i> Merge</button>
-                            <button id="clearAllBtn" class="clear-all-btn"><i class="fas fa-trash-alt"></i> Clear all</button>
+                    <div class="p-4">
+                        <div id="dragDropArea" class="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-4 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition bg-gray-50 dark:bg-gray-800/50">
+                            <input type="file" id="pdfUploadInput" accept="application/pdf" multiple class="hidden">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-blue-400 mb-2"></i>
+                            <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Klik atau seret file PDF ke sini</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mendukung banyak file</p>
+                            <button id="uploadBtn" class="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-full text-sm transition flex items-center justify-center gap-2">
+                                <i class="fas fa-upload"></i> Pilih File PDF
+                            </button>
                         </div>
                     </div>
-                    <div id="fileListContainer" class="file-list-container">
-                        <div class="text-center py-8 text-sm" style="color: var(--gray-700);">Belum ada PDF. Upload file.</div>
+                    <div class="flex-1 p-2 pt-0">
+                        <div class="flex justify-between items-center px-2 mb-2">
+                            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">DAFTAR FILE</span>
+                            <div class="flex gap-2">
+                                <button id="mergePdfBtn" class="text-xs text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition"><i class="fas fa-object-group"></i> Merge</button>
+                                <button id="clearAllBtn" class="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition"><i class="fas fa-trash-alt"></i> Clear all</button>
+                            </div>
+                        </div>
+                        <div id="fileListContainer" class="space-y-1 max-h-[350px] overflow-y-auto pr-1">
+                            <div class="text-center py-8 text-sm text-gray-400 dark:text-gray-500">Belum ada PDF. Upload file.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kolom Tengah: Preview PDF -->
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col transition-all">
+                    <div class="p-4 flex-1 flex flex-col">
+                        <!-- Area Preview dengan ukuran tetap -->
+                        <div id="previewWrapper" class="preview-wrapper">
+                            <div id="emptyState" class="empty-state">
+                                <i class="fas fa-file-pdf"></i>
+                                <p>Belum ada PDF yang dipilih</p>
+                                <p class="text-xs mt-2">Upload file PDF untuk mulai melihat</p>
+                            </div>
+                            <div id="pdfWrapper" class="hidden relative">
+                                <canvas id="pdfCanvas"></canvas>
+                            </div>
+                            <div id="loadingMsg" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-800/90 rounded-full px-3 py-1 text-sm shadow z-10">
+                                <i class="fas fa-spinner fa-spin"></i> Memuat...
+                            </div>
+                        </div>
+                        <!-- Kontrol pagination & reset zoom -->
+                        <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-200 dark:border-gray-800">
+                            <div class="flex items-center gap-3">
+                                <button id="prevPage" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-40 transition" disabled><i class="fas fa-chevron-left text-sm"></i></button>
+                                <span class="text-sm font-medium"><span id="currentPage">1</span> / <span id="totalPages">—</span></span>
+                                <button id="nextPage" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-40 transition" disabled><i class="fas fa-chevron-right text-sm"></i></button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button id="resetZoomBtn" class="hidden text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full px-3 py-1 transition">Reset Zoom</button>
+                                <span id="zoomIndicator" class="text-xs bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-1 text-gray-600 dark:text-gray-400">Zoom: 100%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Informasi File PDF -->
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4 transition-all">
+                    <h3 class="font-semibold text-sm text-gray-500 dark:text-gray-400 mb-3">Informasi File PDF</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Nama File</div>
+                            <div id="activeFileName" class="font-medium text-sm break-all">—</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Ukuran File</div>
+                            <div id="fileSizeMB" class="font-medium text-sm">— MB</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Ukuran Cetak (WxH)</div>
+                            <div id="printSizeCm" class="font-medium text-sm">— cm</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Terakhir Diubah</div>
+                            <div id="fileModified" class="font-medium text-sm">—</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Jumlah Halaman</div>
+                            <div id="numPages" class="font-medium text-sm">—</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </main>
 
-        <!-- KOLOM TENGAH: Preview PDF dengan Zoom & Reset -->
-        <div class="preview-container">
-            <div class="card-guidestyle p-4" style="display: flex; flex-direction: column; height: 100%;">
-                <div id="previewWrapper" class="preview-wrapper">
-                    <div id="emptyState" class="empty-state">
-                        <i class="fas fa-file-pdf"></i>
-                        <p>Belum ada PDF yang dipilih</p>
-                        <p class="text-xs mt-2">Upload file PDF untuk mulai melihat</p>
-                    </div>
-                    <div id="pdfWrapper" class="pdf-wrapper" style="display: none;">
-                        <canvas id="pdfCanvas"></canvas>
-                    </div>
-                    <div id="loadingMsg" class="loading-spinner hidden">
-                        <i class="fas fa-spinner fa-spin"></i> Memuat...
-                    </div>
-                </div>
-                <div class="controls-bar">
-                    <div class="pagination-group">
-                        <button id="prevPage" class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
-                        <span class="page-indicator"><span id="currentPage">1</span> / <span id="totalPages">—</span></span>
-                        <button id="nextPage" class="page-btn" disabled><i class="fas fa-chevron-right"></i></button>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button id="resetZoomBtn" class="reset-zoom-btn" style="display: none;">Reset Zoom</button>
-                        <div class="zoom-indicator" id="zoomIndicator">Zoom: 100%</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-2 px-6 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+        <div>QC-PDF 2026 Made with Herry</div>
+        <div id="kasihTipsBtn" class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer flex items-center gap-1"><i class="fas fa-heart text-red-500"></i> Kasih Tips</div>
+    </footer>
 
-        <!-- KOLOM KANAN: Informasi File PDF -->
-        <div class="info-sidebar">
-            <div class="card-guidestyle p-4" style="display: flex; flex-direction: column; height: 100%;">
-                <div class="mb-2">
-                    <h3 class="font-semibold text-sm text-gray-700 dark:text-gray-300">Informasi File PDF</h3>
-                </div>
-                <div class="info-vertical">
-                    <div class="info-vertical-item">
-                        <div class="info-label">Nama File</div>
-                        <div class="info-value" id="activeFileName" style="word-break: break-word;">—</div>
-                    </div>
-                    <div class="info-vertical-item">
-                        <div class="info-label">Ukuran File</div>
-                        <div class="info-value" id="fileSizeMB">— MB</div>
-                    </div>
-                    <div class="info-vertical-item">
-                        <div class="info-label">Ukuran Cetak (WxH)</div>
-                        <div class="info-value" id="printSizeCm">— cm</div>
-                    </div>
-                    <div class="info-vertical-item">
-                        <div class="info-label">Terakhir Diubah</div>
-                        <div class="info-value" id="fileModified">—</div>
-                    </div>
-                    <div class="info-vertical-item">
-                        <div class="info-label">Jumlah Halaman</div>
-                        <div class="info-value" id="numPages">—</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Footer -->
-<div class="footer-new">
-    <div class="footer-left">QC-PDF 2026 Made with Herry</div>
-    <div class="footer-right" id="kasihTipsBtn"><i class="fas fa-heart" style="color: #ED3241;"></i> Kasih Tips</div>
-</div>
-
-<script>
-    (function(){
-        // Dark mode toggle
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        const themeTextSpan = document.getElementById('themeText');
-        const htmlElement = document.documentElement;
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            htmlElement.classList.add('dark');
-            themeTextSpan.innerText = 'Light';
-            themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> <span id="themeText">Light</span>';
-        } else if (savedTheme === 'light') {
-            htmlElement.classList.remove('dark');
-            themeTextSpan.innerText = 'Dark';
-            themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> <span id="themeText">Dark</span>';
-        } else {
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                htmlElement.classList.add('dark');
-                themeTextSpan.innerText = 'Light';
-                themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> <span id="themeText">Light</span>';
+    <script>
+        (function(){
+            // Dark mode toggle dengan benar
+            const themeToggle = document.getElementById('themeToggle');
+            const html = document.documentElement;
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                html.classList.add('dark');
+            } else if (savedTheme === 'light') {
+                html.classList.remove('dark');
             } else {
-                htmlElement.classList.remove('dark');
-                themeTextSpan.innerText = 'Dark';
-                themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> <span id="themeText">Dark</span>';
-            }
-        }
-        function toggleTheme() {
-            if (htmlElement.classList.contains('dark')) {
-                htmlElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                themeTextSpan.innerText = 'Dark';
-                themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> <span id="themeText">Dark</span>';
-            } else {
-                htmlElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                themeTextSpan.innerText = 'Light';
-                themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> <span id="themeText">Light</span>';
-            }
-            if (typeof renderPage === 'function' && activeFileIndex !== -1) {
-                renderPage().catch(console.error);
-            }
-        }
-        themeToggleBtn.addEventListener('click', toggleTheme);
-
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
-        let uploadedFiles = [];
-        let activeFileIndex = -1;
-        let currentPage = 1;
-        let currentPdfDoc = null;
-        let nextId = 1;
-        
-        // Zoom state
-        let currentZoom = 1.0;
-        let baseScale = 1.0;
-        let originalPageWidth = 0;
-        let isRendering = false;
-        
-        // DOM elements
-        const fileListDiv = document.getElementById('fileListContainer');
-        const uploadInput = document.getElementById('pdfUploadInput');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const dragArea = document.getElementById('dragDropArea');
-        const clearAllBtn = document.getElementById('clearAllBtn');
-        const mergePdfBtn = document.getElementById('mergePdfBtn');
-        const canvas = document.getElementById('pdfCanvas');
-        const ctx = canvas.getContext('2d');
-        const previewWrapper = document.getElementById('previewWrapper');
-        const emptyStateDiv = document.getElementById('emptyState');
-        const pdfWrapperDiv = document.getElementById('pdfWrapper');
-        const activeFileNameSpan = document.getElementById('activeFileName');
-        const fileSizeSpan = document.getElementById('fileSizeMB');
-        const numPagesSpan = document.getElementById('numPages');
-        const printSizeSpan = document.getElementById('printSizeCm');
-        const fileModifiedSpan = document.getElementById('fileModified');
-        const prevBtn = document.getElementById('prevPage');
-        const nextBtn = document.getElementById('nextPage');
-        const currentPageSpan = document.getElementById('currentPage');
-        const totalPagesSpan = document.getElementById('totalPages');
-        const loadingMsg = document.getElementById('loadingMsg');
-        const zoomIndicator = document.getElementById('zoomIndicator');
-        const resetZoomBtn = document.getElementById('resetZoomBtn');
-        const kasihTipsBtn = document.getElementById('kasihTipsBtn');
-
-        const qrisUrl = 'https://raw.githubusercontent.com/pandatosca/QC-PDF/main/qris_herry.svg';
-
-        function showTipsModal() { /* sama seperti sebelumnya */ 
-            const modalDiv = document.createElement('div');
-            modalDiv.className = 'modal-guidestyle';
-            modalDiv.innerHTML = `
-                <div class="modal-guidestyle-content" style="max-width: 420px;">
-                    <i class="fas fa-heart" style="font-size: 2rem; color: #ED3241; margin-bottom: 0.5rem;"></i>
-                    <h3>Terima Kasih!</h3>
-                    <p style="margin-bottom: 0.75rem; font-size: 0.75rem;">Senang melihat QC-PDF bisa membantu pekerjaan Anda. Aplikasi ini dibuat dengan fokus untuk membuat proses quality control dokumen PDF jadi lebih cepat, rapi, dan nyaman digunakan.</p>
-                    <p style="margin-bottom: 0.75rem; font-size: 0.75rem;">Kalau Anda ingin ikut mendukung pengembangan QC-PDF, Anda bisa memberikan tips sukarela melalui QRIS di bawah ini. Dukungan sekecil apa pun sangat berarti dan akan membantu pengembangan fitur-fitur baru ke depannya.</p>
-                    <img src="${qrisUrl}" alt="QRIS" class="qris-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 200 200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23E8E9F1\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%2371727A\' font-size=\'12\'%3EQRIS%3C/text%3E%3C/svg%3E'">
-                    <p style="margin-top: 0.5rem; font-weight: 600;">— Herry, Developer QC-PDF —</p>
-                    <button class="modal-close-btn">Tutup</button>
-                </div>
-            `;
-            document.body.appendChild(modalDiv);
-            const closeBtn = modalDiv.querySelector('.modal-close-btn');
-            closeBtn.onclick = () => modalDiv.remove();
-            modalDiv.onclick = (e) => { if (e.target === modalDiv) modalDiv.remove(); };
-        }
-
-        function showModal(title, message, onClose = null) {
-            const modalDiv = document.createElement('div');
-            modalDiv.className = 'modal-guidestyle';
-            modalDiv.innerHTML = `
-                <div class="modal-guidestyle-content">
-                    <h3>${escapeHtml(title)}</h3>
-                    <p>${escapeHtml(message)}</p>
-                    <button class="modal-close-btn">Tutup</button>
-                </div>
-            `;
-            document.body.appendChild(modalDiv);
-            const closeBtn = modalDiv.querySelector('.modal-close-btn');
-            const closeModal = () => {
-                modalDiv.remove();
-                if (onClose) onClose();
-            };
-            closeBtn.onclick = closeModal;
-            modalDiv.onclick = (e) => { if (e.target === modalDiv) closeModal(); };
-            return modalDiv;
-        }
-
-        function pointsToCm(points) { return (points * 2.54 / 72).toFixed(2); }
-        async function getPageDimensions(pdfDoc, pageNum) {
-            const page = await pdfDoc.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 1 });
-            return { widthCm: pointsToCm(viewport.width), heightCm: pointsToCm(viewport.height), widthPt: viewport.width, heightPt: viewport.height };
-        }
-
-        function updateBaseScale() {
-            if (!previewWrapper || !originalPageWidth) return;
-            const containerWidth = previewWrapper.clientWidth - 20;
-            if (containerWidth > 0 && originalPageWidth > 0) {
-                baseScale = containerWidth / originalPageWidth;
-            } else {
-                baseScale = 1;
-            }
-        }
-
-        async function renderPage() {
-            if (!currentPdfDoc || activeFileIndex === -1 || isRendering) return;
-            isRendering = true;
-            loadingMsg.classList.remove('hidden');
-            try {
-                const page = await currentPdfDoc.getPage(currentPage);
-                const originalViewport = page.getViewport({ scale: 1 });
-                if (originalPageWidth === 0) {
-                    originalPageWidth = originalViewport.width;
-                    updateBaseScale();
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    html.classList.add('dark');
                 }
-                let finalScale = baseScale * currentZoom;
-                finalScale = Math.min(Math.max(finalScale, 0.2), 5);
-                const viewport = page.getViewport({ scale: finalScale });
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                await page.render({ canvasContext: ctx, viewport, background: 'white' }).promise;
-                zoomIndicator.innerText = `Zoom: ${Math.round(currentZoom * 100)}%`;
-                resetZoomBtn.style.display = 'inline-flex';
-            } catch(err) { console.error(err); }
-            finally { loadingMsg.classList.add('hidden'); isRendering = false; }
-        }
-
-        function resetZoom() {
-            currentZoom = 1.0;
-            renderPage().catch(console.error);
-        }
-
-        async function setActiveFile(index) {
-            if (index === activeFileIndex && currentPdfDoc) return;
-            activeFileIndex = index;
-            const file = uploadedFiles[activeFileIndex];
-            activeFileNameSpan.innerText = file.displayName || file.name;
-            fileSizeSpan.innerText = `${file.sizeMB} MB`;
-            numPagesSpan.innerText = file.numPages;
-            const dimFirst = file.pageDimensionsCm[0];
-            printSizeSpan.innerText = `${dimFirst.widthCm} x ${dimFirst.heightCm} cm`;
-            fileModifiedSpan.innerText = file.lastModifiedDate;
-            totalPagesSpan.innerText = file.numPages;
-            currentPage = 1;
-            currentPageSpan.innerText = '1';
-            currentPdfDoc = file.pdfDoc;
-            currentZoom = 1.0;
-            const firstPage = await currentPdfDoc.getPage(1);
-            const vp = firstPage.getViewport({ scale: 1 });
-            originalPageWidth = vp.width;
-            updateBaseScale();
-            // Tampilkan area canvas, sembunyikan empty state
-            emptyStateDiv.style.display = 'none';
-            pdfWrapperDiv.style.display = 'inline-block';
-            await renderPage();
-            updateNavButtons();
-        }
-
-        async function changePage(delta) {
-            if (!uploadedFiles[activeFileIndex]) return;
-            let newPage = currentPage + delta;
-            if (newPage < 1 || newPage > uploadedFiles[activeFileIndex].numPages) return;
-            currentPage = newPage;
-            currentPageSpan.innerText = currentPage;
-            await renderPage();
-            updateNavButtons();
-        }
-
-        function updateNavButtons() {
-            if (!uploadedFiles[activeFileIndex]) return;
-            prevBtn.disabled = currentPage <= 1;
-            nextBtn.disabled = currentPage >= uploadedFiles[activeFileIndex].numPages;
-        }
-
-        function adjustZoom(delta) {
-            let newZoom = currentZoom * delta;
-            newZoom = Math.min(Math.max(newZoom, 0.3), 4);
-            if (newZoom === currentZoom) return;
-            currentZoom = newZoom;
-            renderPage().catch(console.error);
-        }
-
-        previewWrapper.addEventListener('wheel', (e) => {
-            if (e.ctrlKey) {
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? 0.9 : 1.1;
-                adjustZoom(delta);
             }
-        }, { passive: false });
+            themeToggle.addEventListener('click', () => {
+                html.classList.toggle('dark');
+                localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+            });
 
-        let initialPinchDistance = null;
-        let initialZoom = 1;
-        previewWrapper.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                e.preventDefault();
-                const dx = e.touches[0].clientX - e.touches[1].clientX;
-                const dy = e.touches[0].clientY - e.touches[1].clientY;
-                initialPinchDistance = Math.hypot(dx, dy);
-                initialZoom = currentZoom;
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+            let uploadedFiles = [];
+            let activeFileIndex = -1;
+            let currentPage = 1;
+            let currentPdfDoc = null;
+            let nextId = 1;
+            
+            // Zoom state (internal canvas)
+            let currentZoom = 1.0;
+            let baseScale = 1.0;
+            let originalPageWidth = 0;
+            let isRendering = false;
+            
+            // DOM elements
+            const fileListDiv = document.getElementById('fileListContainer');
+            const uploadInput = document.getElementById('pdfUploadInput');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const dragArea = document.getElementById('dragDropArea');
+            const clearAllBtn = document.getElementById('clearAllBtn');
+            const mergePdfBtn = document.getElementById('mergePdfBtn');
+            const canvas = document.getElementById('pdfCanvas');
+            const ctx = canvas.getContext('2d');
+            const previewWrapper = document.getElementById('previewWrapper');
+            const emptyStateDiv = document.getElementById('emptyState');
+            const pdfWrapperDiv = document.getElementById('pdfWrapper');
+            const activeFileNameSpan = document.getElementById('activeFileName');
+            const fileSizeSpan = document.getElementById('fileSizeMB');
+            const numPagesSpan = document.getElementById('numPages');
+            const printSizeSpan = document.getElementById('printSizeCm');
+            const fileModifiedSpan = document.getElementById('fileModified');
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+            const currentPageSpan = document.getElementById('currentPage');
+            const totalPagesSpan = document.getElementById('totalPages');
+            const loadingMsg = document.getElementById('loadingMsg');
+            const zoomIndicator = document.getElementById('zoomIndicator');
+            const resetZoomBtn = document.getElementById('resetZoomBtn');
+            const kasihTipsBtn = document.getElementById('kasihTipsBtn');
+
+            const qrisUrl = 'https://raw.githubusercontent.com/pandatosca/QC-PDF/main/qris_herry.svg';
+            function showTipsModal() {
+                const modalDiv = document.createElement('div');
+                modalDiv.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+                modalDiv.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-5 max-w-md w-11/12 text-center shadow-xl">
+                        <i class="fas fa-heart text-3xl text-red-500 mb-2"></i>
+                        <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-2">Terima Kasih!</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">Senang melihat QC-PDF bisa membantu pekerjaan Anda. Aplikasi ini dibuat dengan fokus untuk membuat proses quality control dokumen PDF jadi lebih cepat, rapi, dan nyaman digunakan.</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">Kalau Anda ingin ikut mendukung pengembangan QC-PDF, Anda bisa memberikan tips sukarela melalui QRIS di bawah ini. Dukungan sekecil apa pun sangat berarti dan akan membantu pengembangan fitur-fitur baru ke depannya.</p>
+                        <img src="${qrisUrl}" alt="QRIS" class="w-48 mx-auto mb-3 border rounded-lg p-2 bg-white" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\' viewBox=\'0 0 200 200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23ddd\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3EQRIS%3C/text%3E%3C/svg%3E'">
+                        <p class="text-sm font-semibold text-gray-800 dark:text-gray-200">— Herry, Developer QC-PDF —</p>
+                        <button class="mt-4 bg-blue-600 text-white px-4 py-1 rounded-full hover:bg-blue-700 transition close-modal">Tutup</button>
+                    </div>
+                `;
+                document.body.appendChild(modalDiv);
+                modalDiv.querySelector('.close-modal').onclick = () => modalDiv.remove();
+                modalDiv.onclick = (e) => { if (e.target === modalDiv) modalDiv.remove(); };
             }
-        });
-        previewWrapper.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2 && initialPinchDistance) {
-                e.preventDefault();
-                const dx = e.touches[0].clientX - e.touches[1].clientX;
-                const dy = e.touches[0].clientY - e.touches[1].clientY;
-                const newDistance = Math.hypot(dx, dy);
-                if (newDistance > 0) {
-                    const scale = newDistance / initialPinchDistance;
-                    let newZoom = initialZoom * scale;
-                    newZoom = Math.min(Math.max(newZoom, 0.3), 4);
-                    if (newZoom !== currentZoom) {
-                        currentZoom = newZoom;
-                        renderPage().catch(console.error);
+            function showModal(title, message) {
+                const modalDiv = document.createElement('div');
+                modalDiv.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+                modalDiv.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-5 max-w-sm w-11/12 text-center shadow-xl">
+                        <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-2">${escapeHtml(title)}</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">${escapeHtml(message)}</p>
+                        <button class="mt-4 bg-blue-600 text-white px-4 py-1 rounded-full hover:bg-blue-700 transition close-modal">Tutup</button>
+                    </div>
+                `;
+                document.body.appendChild(modalDiv);
+                modalDiv.querySelector('.close-modal').onclick = () => modalDiv.remove();
+                modalDiv.onclick = (e) => { if (e.target === modalDiv) modalDiv.remove(); };
+            }
+
+            function pointsToCm(points) { return (points * 2.54 / 72).toFixed(2); }
+            async function getPageDimensions(pdfDoc, pageNum) {
+                const page = await pdfDoc.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 1 });
+                return { widthCm: pointsToCm(viewport.width), heightCm: pointsToCm(viewport.height), widthPt: viewport.width, heightPt: viewport.height };
+            }
+
+            function updateBaseScale() {
+                if (!previewWrapper || !originalPageWidth) return;
+                // Lebar container preview dikurangi padding
+                const containerWidth = previewWrapper.clientWidth - 20;
+                if (containerWidth > 0 && originalPageWidth > 0) {
+                    baseScale = containerWidth / originalPageWidth;
+                } else {
+                    baseScale = 1;
+                }
+            }
+
+            async function renderPage() {
+                if (!currentPdfDoc || activeFileIndex === -1 || isRendering) return;
+                isRendering = true;
+                loadingMsg.classList.remove('hidden');
+                try {
+                    const page = await currentPdfDoc.getPage(currentPage);
+                    const originalViewport = page.getViewport({ scale: 1 });
+                    if (originalPageWidth === 0) {
+                        originalPageWidth = originalViewport.width;
+                        updateBaseScale();
+                    }
+                    let finalScale = baseScale * currentZoom;
+                    finalScale = Math.min(Math.max(finalScale, 0.2), 4.0);
+                    const viewport = page.getViewport({ scale: finalScale });
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    // Agar canvas tidak melebihi container, kita set max-width 100% (tapi zoom internal via overflow)
+                    canvas.style.maxWidth = '100%';
+                    canvas.style.height = 'auto';
+                    await page.render({ canvasContext: ctx, viewport, background: 'white' }).promise;
+                    zoomIndicator.innerText = `Zoom: ${Math.round(currentZoom * 100)}%`;
+                    resetZoomBtn.classList.remove('hidden');
+                } catch(err) { console.error(err); }
+                finally { loadingMsg.classList.add('hidden'); isRendering = false; }
+            }
+
+            function resetZoom() {
+                currentZoom = 1.0;
+                renderPage();
+            }
+
+            async function setActiveFile(index) {
+                if (index === activeFileIndex && currentPdfDoc) return;
+                activeFileIndex = index;
+                const file = uploadedFiles[activeFileIndex];
+                activeFileNameSpan.innerText = file.displayName || file.name;
+                fileSizeSpan.innerText = `${file.sizeMB} MB`;
+                numPagesSpan.innerText = file.numPages;
+                const dimFirst = file.pageDimensionsCm[0];
+                printSizeSpan.innerText = `${dimFirst.widthCm} x ${dimFirst.heightCm} cm`;
+                fileModifiedSpan.innerText = file.lastModifiedDate;
+                totalPagesSpan.innerText = file.numPages;
+                currentPage = 1;
+                currentPageSpan.innerText = '1';
+                currentPdfDoc = file.pdfDoc;
+                currentZoom = 1.0;
+                const firstPage = await currentPdfDoc.getPage(1);
+                const vp = firstPage.getViewport({ scale: 1 });
+                originalPageWidth = vp.width;
+                updateBaseScale();
+                emptyStateDiv.classList.add('hidden');
+                pdfWrapperDiv.classList.remove('hidden');
+                await renderPage();
+                updateNavButtons();
+            }
+
+            async function changePage(delta) {
+                if (!uploadedFiles[activeFileIndex]) return;
+                let newPage = currentPage + delta;
+                if (newPage < 1 || newPage > uploadedFiles[activeFileIndex].numPages) return;
+                currentPage = newPage;
+                currentPageSpan.innerText = currentPage;
+                await renderPage();
+                updateNavButtons();
+            }
+            function updateNavButtons() {
+                if (!uploadedFiles[activeFileIndex]) return;
+                prevBtn.disabled = currentPage <= 1;
+                nextBtn.disabled = currentPage >= uploadedFiles[activeFileIndex].numPages;
+            }
+
+            function adjustZoom(delta) {
+                let newZoom = currentZoom * delta;
+                newZoom = Math.min(Math.max(newZoom, 0.3), 4.0);
+                if (newZoom !== currentZoom) {
+                    currentZoom = newZoom;
+                    renderPage();
+                }
+            }
+            // Zoom dengan Ctrl+Scroll
+            previewWrapper.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    adjustZoom(e.deltaY > 0 ? 0.9 : 1.1);
+                }
+            }, { passive: false });
+            // Pinch zoom untuk mobile
+            let pinchDist = null, pinchZoom = 1;
+            previewWrapper.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    pinchDist = Math.hypot(dx, dy);
+                    pinchZoom = currentZoom;
+                }
+            });
+            previewWrapper.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2 && pinchDist) {
+                    e.preventDefault();
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    const newDist = Math.hypot(dx, dy);
+                    if (newDist > 0) {
+                        let newZoom = pinchZoom * (newDist / pinchDist);
+                        newZoom = Math.min(Math.max(newZoom, 0.3), 4.0);
+                        if (newZoom !== currentZoom) {
+                            currentZoom = newZoom;
+                            renderPage();
+                        }
                     }
                 }
-            }
-        });
-        previewWrapper.addEventListener('touchend', () => { initialPinchDistance = null; });
+            });
+            previewWrapper.addEventListener('touchend', () => { pinchDist = null; });
 
-        const resizeObserver = new ResizeObserver(() => {
-            if (activeFileIndex !== -1) {
-                updateBaseScale();
-                renderPage().catch(console.error);
-            }
-        });
-        resizeObserver.observe(previewWrapper);
-
-        // Fungsi rename, merge, dll (sama seperti sebelumnya, disisipkan)
-        async function renameAndDownloadFile(index, newName) {
-            const file = uploadedFiles[index];
-            let finalName = newName.trim();
-            if (!finalName.toLowerCase().endsWith('.pdf')) finalName += '.pdf';
-            try {
-                const blob = new Blob([file.arrayBuffer], { type: 'application/pdf' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = finalName;
-                link.click();
-                URL.revokeObjectURL(link.href);
-                file.displayName = finalName;
-                file.isRenamed = true;
-                if (activeFileIndex === index) activeFileNameSpan.innerText = finalName;
-                renderFileList();
-                showModal('Berhasil', `File berhasil diunduh dengan nama: ${finalName}`);
-            } catch(err) {
-                showModal('Gagal', 'Gagal mengunduh file dengan nama baru');
-            }
-        }
-        function showRenameModal(index, currentName) {
-            const modalDiv = document.createElement('div');
-            modalDiv.className = 'rename-modal';
-            modalDiv.innerHTML = `
-                <div class="rename-modal-content">
-                    <h3>Ganti Nama File</h3>
-                    <input type="text" id="renameInput" class="rename-input" value="${escapeHtml(currentName)}">
-                    <p style="font-size: 0.7rem; color: var(--gray-700); margin-bottom: 0.75rem;">*File akan diunduh dengan nama baru (konten tetap sama)</p>
-                    <div class="rename-modal-buttons">
-                        <button id="cancelRename" class="rename-cancel">Batal</button>
-                        <button id="saveRename" class="rename-save">Simpan & Unduh</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modalDiv);
-            const input = modalDiv.querySelector('#renameInput');
-            input.focus();
-            modalDiv.querySelector('#cancelRename').onclick = () => modalDiv.remove();
-            modalDiv.querySelector('#saveRename').onclick = async () => {
-                const newName = input.value.trim();
-                if (newName) await renameAndDownloadFile(index, newName);
-                else showModal('Peringatan', 'Nama file tidak boleh kosong');
-                modalDiv.remove();
-            };
-        }
-        async function mergePDFs() {
-            if (uploadedFiles.length < 2) {
-                showModal('Informasi', 'Minimal 2 file untuk digabung.');
-                return;
-            }
-            loadingMsg.classList.remove('hidden');
-            try {
-                const mergedPdf = await PDFLib.PDFDocument.create();
-                for (let file of uploadedFiles) {
-                    const pdfDoc = await PDFLib.PDFDocument.load(file.arrayBuffer);
-                    const pages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-                    for (let page of pages) mergedPdf.addPage(page);
+            const resizeObserver = new ResizeObserver(() => {
+                if (activeFileIndex !== -1) {
+                    updateBaseScale();
+                    renderPage();
                 }
-                const pdfBytes = await mergedPdf.save();
-                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `QC-Merged_${new Date().toISOString().slice(0,19)}.pdf`;
-                link.click();
-                URL.revokeObjectURL(link.href);
-                showModal('Berhasil', 'Merge PDF berhasil!');
-            } catch(err) { showModal('Gagal', 'Gagal merge PDF.'); }
-            finally { loadingMsg.classList.add('hidden'); }
-        }
+            });
+            resizeObserver.observe(previewWrapper);
 
-        let dragSrcIndex = null;
-        function handleDragStart(e, index) { dragSrcIndex = index; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', index); e.target.classList.add('dragging'); }
-        function handleDragOver(e, index) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
-        function handleDrop(e, targetIndex) {
-            e.preventDefault();
-            if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
-            const moved = uploadedFiles[dragSrcIndex];
-            uploadedFiles.splice(dragSrcIndex, 1);
-            uploadedFiles.splice(targetIndex, 0, moved);
-            if (activeFileIndex === dragSrcIndex) activeFileIndex = targetIndex;
-            else if (activeFileIndex > dragSrcIndex && activeFileIndex <= targetIndex) activeFileIndex--;
-            else if (activeFileIndex < dragSrcIndex && activeFileIndex >= targetIndex) activeFileIndex++;
-            renderFileList();
-            if (activeFileIndex !== -1) setActiveFile(activeFileIndex);
-            dragSrcIndex = null;
-        }
-        function handleDragEnd(e) { e.target.classList.remove('dragging'); dragSrcIndex = null; }
-
-        async function handleUpload(files) {
-            for (const file of files) {
-                if (file.type !== 'application/pdf') continue;
-                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-                const arrayBuffer = await file.arrayBuffer();
-                const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                const numPages = pdfDoc.numPages;
-                const pageDimensionsCm = [];
-                for (let i = 1; i <= numPages; i++) pageDimensionsCm.push(await getPageDimensions(pdfDoc, i));
-                const lastModifiedDate = new Date(file.lastModified).toLocaleDateString('id-ID');
-                uploadedFiles.push({
-                    id: nextId++, file, name: file.name, displayName: file.name, sizeMB, numPages, pdfDoc, pageDimensionsCm, arrayBuffer, lastModifiedDate, isRenamed: false
-                });
+            // File operations (rename, merge, drag drop)
+            async function renameAndDownloadFile(index, newName) {
+                const file = uploadedFiles[index];
+                let finalName = newName.trim();
+                if (!finalName.toLowerCase().endsWith('.pdf')) finalName += '.pdf';
+                try {
+                    const blob = new Blob([file.arrayBuffer], { type: 'application/pdf' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = finalName;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                    file.displayName = finalName;
+                    file.isRenamed = true;
+                    if (activeFileIndex === index) activeFileNameSpan.innerText = finalName;
+                    renderFileList();
+                    showModal('Berhasil', `File berhasil diunduh dengan nama: ${finalName}`);
+                } catch(err) { showModal('Gagal', 'Gagal mengunduh file'); }
             }
-            renderFileList();
-            if (activeFileIndex === -1 && uploadedFiles.length) setActiveFile(0);
-        }
+            function showRenameModal(index, currentName) {
+                const modalDiv = document.createElement('div');
+                modalDiv.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+                modalDiv.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-5 w-11/12 max-w-sm shadow-xl">
+                        <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-2">Ganti Nama File</h3>
+                        <input type="text" id="renameInput" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 mb-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100" value="${escapeHtml(currentName)}">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">*File akan diunduh dengan nama baru</p>
+                        <div class="flex justify-end gap-2">
+                            <button id="cancelRename" class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Batal</button>
+                            <button id="saveRename" class="px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">Simpan & Unduh</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modalDiv);
+                const input = modalDiv.querySelector('#renameInput');
+                input.focus();
+                modalDiv.querySelector('#cancelRename').onclick = () => modalDiv.remove();
+                modalDiv.querySelector('#saveRename').onclick = async () => {
+                    const newName = input.value.trim();
+                    if (newName) await renameAndDownloadFile(index, newName);
+                    else showModal('Peringatan', 'Nama tidak boleh kosong');
+                    modalDiv.remove();
+                };
+            }
+            async function mergePDFs() {
+                if (uploadedFiles.length < 2) { showModal('Informasi', 'Minimal 2 file untuk digabung.'); return; }
+                loadingMsg.classList.remove('hidden');
+                try {
+                    const mergedPdf = await PDFLib.PDFDocument.create();
+                    for (let file of uploadedFiles) {
+                        const pdfDoc = await PDFLib.PDFDocument.load(file.arrayBuffer);
+                        const pages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                        for (let page of pages) mergedPdf.addPage(page);
+                    }
+                    const pdfBytes = await mergedPdf.save();
+                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `QC-Merged_${new Date().toISOString().slice(0,19)}.pdf`;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                    showModal('Berhasil', 'Merge PDF berhasil!');
+                } catch(err) { showModal('Gagal', 'Gagal merge PDF.'); }
+                finally { loadingMsg.classList.add('hidden'); }
+            }
 
-        function removeFile(index) {
-            if (index === activeFileIndex) {
+            let dragSrcIndex = null;
+            function handleDragStart(e, idx) { dragSrcIndex = idx; e.dataTransfer.effectAllowed = 'move'; e.target.classList.add('opacity-50'); }
+            function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+            function handleDrop(e, targetIdx) {
+                e.preventDefault();
+                if (dragSrcIndex === null || dragSrcIndex === targetIdx) return;
+                const moved = uploadedFiles[dragSrcIndex];
+                uploadedFiles.splice(dragSrcIndex, 1);
+                uploadedFiles.splice(targetIdx, 0, moved);
+                if (activeFileIndex === dragSrcIndex) activeFileIndex = targetIdx;
+                else if (activeFileIndex > dragSrcIndex && activeFileIndex <= targetIdx) activeFileIndex--;
+                else if (activeFileIndex < dragSrcIndex && activeFileIndex >= targetIdx) activeFileIndex++;
+                renderFileList();
+                if (activeFileIndex !== -1) setActiveFile(activeFileIndex);
+                dragSrcIndex = null;
+            }
+            function handleDragEnd(e) { e.target.classList.remove('opacity-50'); dragSrcIndex = null; }
+
+            async function handleUpload(files) {
+                for (const file of files) {
+                    if (file.type !== 'application/pdf') continue;
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    const numPages = pdfDoc.numPages;
+                    const pageDimensionsCm = [];
+                    for (let i = 1; i <= numPages; i++) pageDimensionsCm.push(await getPageDimensions(pdfDoc, i));
+                    const lastModifiedDate = new Date(file.lastModified).toLocaleDateString('id-ID');
+                    uploadedFiles.push({
+                        id: nextId++, file, name: file.name, displayName: file.name, sizeMB, numPages, pdfDoc, pageDimensionsCm, arrayBuffer, lastModifiedDate, isRenamed: false
+                    });
+                }
+                renderFileList();
+                if (activeFileIndex === -1 && uploadedFiles.length) setActiveFile(0);
+            }
+            function removeFile(index) {
+                if (index === activeFileIndex) {
+                    activeFileIndex = -1;
+                    currentPdfDoc = null;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    activeFileNameSpan.innerText = '—';
+                    fileSizeSpan.innerText = '— MB';
+                    numPagesSpan.innerText = '—';
+                    printSizeSpan.innerText = '— cm';
+                    fileModifiedSpan.innerText = '—';
+                    totalPagesSpan.innerText = '—';
+                    currentPageSpan.innerText = '1';
+                    emptyStateDiv.classList.remove('hidden');
+                    pdfWrapperDiv.classList.add('hidden');
+                    resetZoomBtn.classList.add('hidden');
+                }
+                uploadedFiles.splice(index, 1);
+                if (activeFileIndex > index) activeFileIndex--;
+                renderFileList();
+                if (uploadedFiles.length > 0 && activeFileIndex === -1) setActiveFile(0);
+                else if (uploadedFiles.length === 0) {
+                    emptyStateDiv.classList.remove('hidden');
+                    pdfWrapperDiv.classList.add('hidden');
+                }
+            }
+            function clearAllFiles() {
+                if (uploadedFiles.length === 0) return;
+                uploadedFiles = [];
                 activeFileIndex = -1;
                 currentPdfDoc = null;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -984,101 +549,72 @@
                 fileModifiedSpan.innerText = '—';
                 totalPagesSpan.innerText = '—';
                 currentPageSpan.innerText = '1';
-                emptyStateDiv.style.display = 'flex';
-                pdfWrapperDiv.style.display = 'none';
-                resetZoomBtn.style.display = 'none';
-                zoomIndicator.innerText = 'Zoom: 100%';
+                emptyStateDiv.classList.remove('hidden');
+                pdfWrapperDiv.classList.add('hidden');
+                resetZoomBtn.classList.add('hidden');
+                renderFileList();
+                showModal('Berhasil', 'Semua file telah dihapus.');
             }
-            uploadedFiles.splice(index, 1);
-            if (activeFileIndex > index) activeFileIndex--;
-            renderFileList();
-            if (uploadedFiles.length > 0 && activeFileIndex === -1) setActiveFile(0);
-            else if (uploadedFiles.length === 0) {
-                emptyStateDiv.style.display = 'flex';
-                pdfWrapperDiv.style.display = 'none';
-            }
-        }
-
-        function clearAllFiles() {
-            if (uploadedFiles.length === 0) return;
-            uploadedFiles = [];
-            activeFileIndex = -1;
-            currentPdfDoc = null;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            activeFileNameSpan.innerText = '—';
-            fileSizeSpan.innerText = '— MB';
-            numPagesSpan.innerText = '—';
-            printSizeSpan.innerText = '— cm';
-            fileModifiedSpan.innerText = '—';
-            totalPagesSpan.innerText = '—';
-            currentPageSpan.innerText = '1';
-            emptyStateDiv.style.display = 'flex';
-            pdfWrapperDiv.style.display = 'none';
-            resetZoomBtn.style.display = 'none';
-            renderFileList();
-            showModal('Berhasil', 'Semua file telah dihapus.');
-        }
-
-        function renderFileList() {
-            if (uploadedFiles.length === 0) {
-                fileListDiv.innerHTML = '<div class="text-center py-8 text-sm" style="color: var(--gray-700);">Belum ada PDF. Upload file.</div>';
-                return;
-            }
-            fileListDiv.innerHTML = '';
-            uploadedFiles.forEach((f, idx) => {
-                const isActive = idx === activeFileIndex;
-                const isRenamed = f.isRenamed === true;
-                const div = document.createElement('div');
-                div.className = `file-item ${isActive ? 'active' : ''} ${isRenamed ? 'renamed' : ''}`;
-                div.draggable = true;
-                div.setAttribute('data-index', idx);
-                div.innerHTML = `
-                    <div class="flex-1 min-w-0">
-                        <div class="font-medium truncate">${escapeHtml(f.displayName)}</div>
-                        <div class="text-xs" style="color: var(--gray-800);">${f.sizeMB} MB • ${f.numPages} halaman</div>
-                    </div>
-                    <div class="file-actions">
-                        <button class="rename-btn" data-index="${idx}" title="Ganti nama & unduh"><i class="fas fa-pen"></i></button>
-                        <button class="delete-file-btn" data-index="${idx}" title="Hapus"><i class="fas fa-times-circle"></i></button>
-                    </div>
-                `;
-                div.addEventListener('dragstart', (e) => handleDragStart(e, idx));
-                div.addEventListener('dragover', (e) => handleDragOver(e, idx));
-                div.addEventListener('drop', (e) => handleDrop(e, idx));
-                div.addEventListener('dragend', handleDragEnd);
-                div.addEventListener('click', (e) => {
-                    if (e.target.closest('.rename-btn') || e.target.closest('.delete-file-btn')) return;
-                    setActiveFile(idx);
+            function renderFileList() {
+                if (uploadedFiles.length === 0) {
+                    fileListDiv.innerHTML = '<div class="text-center py-8 text-sm text-gray-400 dark:text-gray-500">Belum ada PDF. Upload file.</div>';
+                    return;
+                }
+                fileListDiv.innerHTML = '';
+                uploadedFiles.forEach((f, idx) => {
+                    const isActive = idx === activeFileIndex;
+                    const div = document.createElement('div');
+                    let bgClass = 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50';
+                    if (isActive) bgClass = 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500';
+                    if (f.isRenamed && !isActive) bgClass = 'bg-green-50 dark:bg-green-900/20';
+                    div.className = `file-item p-2 rounded-lg cursor-grab flex justify-between items-center transition ${bgClass}`;
+                    div.draggable = true;
+                    div.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium text-sm truncate">${escapeHtml(f.displayName)}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">${f.sizeMB} MB • ${f.numPages} halaman</div>
+                        </div>
+                        <div class="flex gap-1">
+                            <button class="rename-btn text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 p-1"><i class="fas fa-pen"></i></button>
+                            <button class="delete-file-btn text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-1"><i class="fas fa-times-circle"></i></button>
+                        </div>
+                    `;
+                    div.addEventListener('dragstart', (e) => handleDragStart(e, idx));
+                    div.addEventListener('dragover', (e) => handleDragOver(e));
+                    div.addEventListener('drop', (e) => handleDrop(e, idx));
+                    div.addEventListener('dragend', handleDragEnd);
+                    div.addEventListener('click', (e) => {
+                        if (e.target.closest('.rename-btn') || e.target.closest('.delete-file-btn')) return;
+                        setActiveFile(idx);
+                    });
+                    div.querySelector('.rename-btn').addEventListener('click', (e) => { e.stopPropagation(); showRenameModal(idx, f.displayName); });
+                    div.querySelector('.delete-file-btn').addEventListener('click', (e) => { e.stopPropagation(); removeFile(idx); });
+                    fileListDiv.appendChild(div);
                 });
-                div.querySelector('.rename-btn').addEventListener('click', (e) => { e.stopPropagation(); showRenameModal(idx, f.displayName); });
-                div.querySelector('.delete-file-btn').addEventListener('click', (e) => { e.stopPropagation(); removeFile(idx); });
-                fileListDiv.appendChild(div);
+            }
+            function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+
+            // Event binding
+            uploadBtn.onclick = () => uploadInput.click();
+            uploadInput.onchange = (e) => { if (e.target.files.length) handleUpload(Array.from(e.target.files)); uploadInput.value = ''; };
+            dragArea.addEventListener('dragover', (e) => { e.preventDefault(); dragArea.classList.add('border-blue-500'); });
+            dragArea.addEventListener('dragleave', () => dragArea.classList.remove('border-blue-500'));
+            dragArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dragArea.classList.remove('border-blue-500');
+                const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+                if (files.length) handleUpload(files); else showModal('Peringatan', 'Hanya file PDF yang didukung.');
             });
-        }
-
-        function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-
-        // Event listeners
-        uploadBtn.addEventListener('click', () => uploadInput.click());
-        uploadInput.addEventListener('change', (e) => { if (e.target.files.length) handleUpload(Array.from(e.target.files)); uploadInput.value = ''; });
-        dragArea.addEventListener('dragover', (e) => { e.preventDefault(); dragArea.classList.add('drag-over'); });
-        dragArea.addEventListener('dragleave', () => dragArea.classList.remove('drag-over'));
-        dragArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dragArea.classList.remove('drag-over');
-            const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
-            if (files.length) handleUpload(files); else showModal('Peringatan', 'Hanya file PDF yang didukung.');
-        });
-        dragArea.addEventListener('click', () => uploadInput.click());
-        clearAllBtn.addEventListener('click', clearAllFiles);
-        mergePdfBtn.addEventListener('click', mergePDFs);
-        prevBtn.addEventListener('click', () => changePage(-1));
-        nextBtn.addEventListener('click', () => changePage(1));
-        resetZoomBtn.addEventListener('click', resetZoom);
-        kasihTipsBtn.addEventListener('click', showTipsModal);
-        window.addEventListener('resize', () => { if (activeFileIndex !== -1) { updateBaseScale(); renderPage(); } });
-        renderFileList();
-    })();
-</script>
+            dragArea.addEventListener('click', () => uploadInput.click());
+            clearAllBtn.onclick = clearAllFiles;
+            mergePdfBtn.onclick = mergePDFs;
+            prevBtn.onclick = () => changePage(-1);
+            nextBtn.onclick = () => changePage(1);
+            resetZoomBtn.onclick = resetZoom;
+            kasihTipsBtn.onclick = showTipsModal;
+            window.addEventListener('resize', () => { if (activeFileIndex !== -1) { updateBaseScale(); renderPage(); } });
+            renderFileList();
+        })();
+    </script>
 </body>
 </html>
