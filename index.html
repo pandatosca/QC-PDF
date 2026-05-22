@@ -28,11 +28,8 @@
             --success-light: #E7F4E8;
             --error: #ED3241;
             --font-sans: 'Inter', system-ui, sans-serif;
-            
-            /* Transisi halus untuk mode change */
             transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         }
-        /* Dark mode override */
         .dark {
             --gray-100: #1a1c23;
             --gray-200: #2a2d37;
@@ -45,13 +42,11 @@
             --blue-50: #1e2a3a;
             --success-light: #1e3a2f;
         }
-        /* Pastikan elemen dengan background putih ikut berubah */
         body, .card-guidestyle, .drag-area, .file-item, .info-vertical, .preview-wrapper, .footer-new, .modal-guidestyle-content, .rename-modal-content {
             transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         }
-        /* Fix untuk canvas dan gambar QRIS tetap terlihat baik */
         canvas, .qris-img {
-            background: white; /* tetap putih agar isi PDF jelas */
+            background: white;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -85,19 +80,14 @@
             font-size: 0.9rem;
             transition: 0.2s;
         }
-        .theme-toggle:hover {
-            background: var(--gray-300);
-        }
+        .theme-toggle:hover { background: var(--gray-300); }
         .main-content {
             flex: 1;
             overflow-y: auto;
             padding: 1rem;
         }
-        /* padding bottom untuk memberi ruang pada fixed footer di mobile */
         @media (max-width: 767px) {
-            .main-content {
-                padding-bottom: 5rem;
-            }
+            .main-content { padding-bottom: 5rem; }
         }
         .main-content::-webkit-scrollbar { width: 6px; }
         .main-content::-webkit-scrollbar-track { background: var(--gray-200); border-radius: 10px; }
@@ -250,10 +240,20 @@
             overflow: auto;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             min-height: 400px;
             max-height: 70vh;
             position: relative;
+        }
+        .empty-state {
+            text-align: center;
+            color: var(--gray-700);
+            padding: 2rem;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
         }
         .pdf-wrapper {
             position: relative;
@@ -282,6 +282,16 @@
             border-radius: 40px;
             color: var(--gray-800);
         }
+        .reset-zoom-btn {
+            background: var(--gray-200);
+            border: none;
+            padding: 0.2rem 0.6rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            color: var(--black);
+        }
+        .reset-zoom-btn:hover { background: var(--gray-300); }
         .pagination-group {
             display: flex;
             align-items: center;
@@ -518,11 +528,16 @@
             </div>
         </div>
 
-        <!-- KOLOM TENGAH: Preview PDF dengan Zoom -->
+        <!-- KOLOM TENGAH: Preview PDF dengan Zoom & Reset -->
         <div class="preview-container">
             <div class="card-guidestyle p-4" style="display: flex; flex-direction: column; height: 100%;">
                 <div id="previewWrapper" class="preview-wrapper">
-                    <div id="pdfWrapper" class="pdf-wrapper">
+                    <div id="emptyState" class="empty-state">
+                        <i class="fas fa-file-pdf"></i>
+                        <p>Belum ada PDF yang dipilih</p>
+                        <p class="text-xs mt-2">Upload file PDF untuk mulai melihat</p>
+                    </div>
+                    <div id="pdfWrapper" class="pdf-wrapper" style="display: none;">
                         <canvas id="pdfCanvas"></canvas>
                     </div>
                     <div id="loadingMsg" class="loading-spinner hidden">
@@ -535,33 +550,39 @@
                         <span class="page-indicator"><span id="currentPage">1</span> / <span id="totalPages">—</span></span>
                         <button id="nextPage" class="page-btn" disabled><i class="fas fa-chevron-right"></i></button>
                     </div>
-                    <div class="zoom-indicator" id="zoomIndicator">Zoom: 100%</div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button id="resetZoomBtn" class="reset-zoom-btn" style="display: none;">Reset Zoom</button>
+                        <div class="zoom-indicator" id="zoomIndicator">Zoom: 100%</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- KOLOM KANAN: Informasi Detail Vertikal -->
+        <!-- KOLOM KANAN: Informasi File PDF -->
         <div class="info-sidebar">
             <div class="card-guidestyle p-4" style="display: flex; flex-direction: column; height: 100%;">
+                <div class="mb-2">
+                    <h3 class="font-semibold text-sm text-gray-700 dark:text-gray-300">Informasi File PDF</h3>
+                </div>
                 <div class="info-vertical">
                     <div class="info-vertical-item">
-                        <div class="info-label">NAMA FILE</div>
+                        <div class="info-label">Nama File</div>
                         <div class="info-value" id="activeFileName" style="word-break: break-word;">—</div>
                     </div>
                     <div class="info-vertical-item">
-                        <div class="info-label">UKURAN FILE</div>
+                        <div class="info-label">Ukuran File</div>
                         <div class="info-value" id="fileSizeMB">— MB</div>
                     </div>
                     <div class="info-vertical-item">
-                        <div class="info-label">PRINT SIZE (WxH)</div>
+                        <div class="info-label">Ukuran Cetak (WxH)</div>
                         <div class="info-value" id="printSizeCm">— cm</div>
                     </div>
                     <div class="info-vertical-item">
-                        <div class="info-label">TERAKHIR DIUBAH</div>
+                        <div class="info-label">Terakhir Diubah</div>
                         <div class="info-value" id="fileModified">—</div>
                     </div>
                     <div class="info-vertical-item">
-                        <div class="info-label">TOTAL HALAMAN</div>
+                        <div class="info-label">Jumlah Halaman</div>
                         <div class="info-value" id="numPages">—</div>
                     </div>
                 </div>
@@ -570,7 +591,7 @@
     </div>
 </div>
 
-<!-- Footer - fixed di mobile -->
+<!-- Footer -->
 <div class="footer-new">
     <div class="footer-left">QC-PDF 2026 Made with Herry</div>
     <div class="footer-right" id="kasihTipsBtn"><i class="fas fa-heart" style="color: #ED3241;"></i> Kasih Tips</div>
@@ -578,12 +599,10 @@
 
 <script>
     (function(){
-        // ========== DARK MODE TOGGLE ==========
+        // Dark mode toggle
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         const themeTextSpan = document.getElementById('themeText');
         const htmlElement = document.documentElement;
-        
-        // Cek preferensi dari localStorage atau sistem
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark') {
             htmlElement.classList.add('dark');
@@ -594,7 +613,6 @@
             themeTextSpan.innerText = 'Dark';
             themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> <span id="themeText">Dark</span>';
         } else {
-            // Cek preferensi sistem
             if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 htmlElement.classList.add('dark');
                 themeTextSpan.innerText = 'Light';
@@ -605,7 +623,6 @@
                 themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> <span id="themeText">Dark</span>';
             }
         }
-        
         function toggleTheme() {
             if (htmlElement.classList.contains('dark')) {
                 htmlElement.classList.remove('dark');
@@ -618,14 +635,12 @@
                 themeTextSpan.innerText = 'Light';
                 themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> <span id="themeText">Light</span>';
             }
-            // Rerender PDF untuk menyesuaikan background container (opsional)
             if (typeof renderPage === 'function' && activeFileIndex !== -1) {
                 renderPage().catch(console.error);
             }
         }
         themeToggleBtn.addEventListener('click', toggleTheme);
-        // ========== AKHIR DARK MODE ==========
-        
+
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
         let uploadedFiles = [];
@@ -635,12 +650,12 @@
         let nextId = 1;
         
         // Zoom state
-        let currentZoom = 1.0;          // 1 = fit to width (base scale)
-        let baseScale = 1.0;             // scale agar lebar pas di container
-        let originalPageWidth = 0;        // lebar asli halaman dalam px (scale=1)
+        let currentZoom = 1.0;
+        let baseScale = 1.0;
+        let originalPageWidth = 0;
         let isRendering = false;
         
-        // DOM
+        // DOM elements
         const fileListDiv = document.getElementById('fileListContainer');
         const uploadInput = document.getElementById('pdfUploadInput');
         const uploadBtn = document.getElementById('uploadBtn');
@@ -650,6 +665,8 @@
         const canvas = document.getElementById('pdfCanvas');
         const ctx = canvas.getContext('2d');
         const previewWrapper = document.getElementById('previewWrapper');
+        const emptyStateDiv = document.getElementById('emptyState');
+        const pdfWrapperDiv = document.getElementById('pdfWrapper');
         const activeFileNameSpan = document.getElementById('activeFileName');
         const fileSizeSpan = document.getElementById('fileSizeMB');
         const numPagesSpan = document.getElementById('numPages');
@@ -661,12 +678,12 @@
         const totalPagesSpan = document.getElementById('totalPages');
         const loadingMsg = document.getElementById('loadingMsg');
         const zoomIndicator = document.getElementById('zoomIndicator');
+        const resetZoomBtn = document.getElementById('resetZoomBtn');
         const kasihTipsBtn = document.getElementById('kasihTipsBtn');
 
-        // QRIS URL
         const qrisUrl = 'https://raw.githubusercontent.com/pandatosca/QC-PDF/main/qris_herry.svg';
 
-        function showTipsModal() {
+        function showTipsModal() { /* sama seperti sebelumnya */ 
             const modalDiv = document.createElement('div');
             modalDiv.className = 'modal-guidestyle';
             modalDiv.innerHTML = `
@@ -682,9 +699,8 @@
             `;
             document.body.appendChild(modalDiv);
             const closeBtn = modalDiv.querySelector('.modal-close-btn');
-            const closeModal = () => modalDiv.remove();
-            closeBtn.onclick = closeModal;
-            modalDiv.onclick = (e) => { if (e.target === modalDiv) closeModal(); };
+            closeBtn.onclick = () => modalDiv.remove();
+            modalDiv.onclick = (e) => { if (e.target === modalDiv) modalDiv.remove(); };
         }
 
         function showModal(title, message, onClose = null) {
@@ -709,17 +725,15 @@
         }
 
         function pointsToCm(points) { return (points * 2.54 / 72).toFixed(2); }
-
         async function getPageDimensions(pdfDoc, pageNum) {
             const page = await pdfDoc.getPage(pageNum);
             const viewport = page.getViewport({ scale: 1 });
             return { widthCm: pointsToCm(viewport.width), heightCm: pointsToCm(viewport.height), widthPt: viewport.width, heightPt: viewport.height };
         }
 
-        // Hitung base scale agar halaman muat lebar di container
         function updateBaseScale() {
             if (!previewWrapper || !originalPageWidth) return;
-            const containerWidth = previewWrapper.clientWidth - 20; // sedikit padding
+            const containerWidth = previewWrapper.clientWidth - 20;
             if (containerWidth > 0 && originalPageWidth > 0) {
                 baseScale = containerWidth / originalPageWidth;
             } else {
@@ -727,32 +741,32 @@
             }
         }
 
-        // Render halaman dengan zoom saat ini
         async function renderPage() {
             if (!currentPdfDoc || activeFileIndex === -1 || isRendering) return;
             isRendering = true;
             loadingMsg.classList.remove('hidden');
             try {
                 const page = await currentPdfDoc.getPage(currentPage);
-                // Dapatkan ukuran asli halaman (scale=1)
                 const originalViewport = page.getViewport({ scale: 1 });
                 if (originalPageWidth === 0) {
                     originalPageWidth = originalViewport.width;
                     updateBaseScale();
                 }
-                // Hitung scale akhir: baseScale * currentZoom
                 let finalScale = baseScale * currentZoom;
-                // Batasi scale agar tidak terlalu kecil/ besar
                 finalScale = Math.min(Math.max(finalScale, 0.2), 5);
                 const viewport = page.getViewport({ scale: finalScale });
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
-                // Render dengan kualitas tinggi
                 await page.render({ canvasContext: ctx, viewport, background: 'white' }).promise;
-                // Update indikator zoom
                 zoomIndicator.innerText = `Zoom: ${Math.round(currentZoom * 100)}%`;
+                resetZoomBtn.style.display = 'inline-flex';
             } catch(err) { console.error(err); }
             finally { loadingMsg.classList.add('hidden'); isRendering = false; }
+        }
+
+        function resetZoom() {
+            currentZoom = 1.0;
+            renderPage().catch(console.error);
         }
 
         async function setActiveFile(index) {
@@ -769,13 +783,14 @@
             currentPage = 1;
             currentPageSpan.innerText = '1';
             currentPdfDoc = file.pdfDoc;
-            // Reset zoom dan base scale saat ganti file
             currentZoom = 1.0;
-            // Dapatkan lebar asli halaman pertama
             const firstPage = await currentPdfDoc.getPage(1);
             const vp = firstPage.getViewport({ scale: 1 });
             originalPageWidth = vp.width;
             updateBaseScale();
+            // Tampilkan area canvas, sembunyikan empty state
+            emptyStateDiv.style.display = 'none';
+            pdfWrapperDiv.style.display = 'inline-block';
             await renderPage();
             updateNavButtons();
         }
@@ -796,26 +811,22 @@
             nextBtn.disabled = currentPage >= uploadedFiles[activeFileIndex].numPages;
         }
 
-        // Zoom handling
-        function adjustZoom(delta, clientX, clientY) {
+        function adjustZoom(delta) {
             let newZoom = currentZoom * delta;
             newZoom = Math.min(Math.max(newZoom, 0.3), 4);
             if (newZoom === currentZoom) return;
             currentZoom = newZoom;
-            // Re-render halaman
             renderPage().catch(console.error);
         }
 
-        // Event: Ctrl + Scroll (desktop)
         previewWrapper.addEventListener('wheel', (e) => {
             if (e.ctrlKey) {
                 e.preventDefault();
                 const delta = e.deltaY > 0 ? 0.9 : 1.1;
-                adjustZoom(delta, e.clientX, e.clientY);
+                adjustZoom(delta);
             }
         }, { passive: false });
 
-        // Pinch zoom untuk mobile
         let initialPinchDistance = null;
         let initialZoom = 1;
         previewWrapper.addEventListener('touchstart', (e) => {
@@ -844,11 +855,8 @@
                 }
             }
         });
-        previewWrapper.addEventListener('touchend', () => {
-            initialPinchDistance = null;
-        });
+        previewWrapper.addEventListener('touchend', () => { initialPinchDistance = null; });
 
-        // Resize observer untuk update base scale saat ukuran container berubah
         const resizeObserver = new ResizeObserver(() => {
             if (activeFileIndex !== -1) {
                 updateBaseScale();
@@ -857,13 +865,11 @@
         });
         resizeObserver.observe(previewWrapper);
 
-        // Fungsi rename dan merge (tidak berubah)
+        // Fungsi rename, merge, dll (sama seperti sebelumnya, disisipkan)
         async function renameAndDownloadFile(index, newName) {
             const file = uploadedFiles[index];
             let finalName = newName.trim();
-            if (!finalName.toLowerCase().endsWith('.pdf')) {
-                finalName = finalName + '.pdf';
-            }
+            if (!finalName.toLowerCase().endsWith('.pdf')) finalName += '.pdf';
             try {
                 const blob = new Blob([file.arrayBuffer], { type: 'application/pdf' });
                 const link = document.createElement('a');
@@ -873,17 +879,13 @@
                 URL.revokeObjectURL(link.href);
                 file.displayName = finalName;
                 file.isRenamed = true;
-                if (activeFileIndex === index) {
-                    activeFileNameSpan.innerText = finalName;
-                }
+                if (activeFileIndex === index) activeFileNameSpan.innerText = finalName;
                 renderFileList();
                 showModal('Berhasil', `File berhasil diunduh dengan nama: ${finalName}`);
             } catch(err) {
-                console.error(err);
                 showModal('Gagal', 'Gagal mengunduh file dengan nama baru');
             }
         }
-
         function showRenameModal(index, currentName) {
             const modalDiv = document.createElement('div');
             modalDiv.className = 'rename-modal';
@@ -904,15 +906,11 @@
             modalDiv.querySelector('#cancelRename').onclick = () => modalDiv.remove();
             modalDiv.querySelector('#saveRename').onclick = async () => {
                 const newName = input.value.trim();
-                if (newName) {
-                    await renameAndDownloadFile(index, newName);
-                } else {
-                    showModal('Peringatan', 'Nama file tidak boleh kosong');
-                }
+                if (newName) await renameAndDownloadFile(index, newName);
+                else showModal('Peringatan', 'Nama file tidak boleh kosong');
                 modalDiv.remove();
             };
         }
-
         async function mergePDFs() {
             if (uploadedFiles.length < 2) {
                 showModal('Informasi', 'Minimal 2 file untuk digabung.');
@@ -934,25 +932,13 @@
                 link.click();
                 URL.revokeObjectURL(link.href);
                 showModal('Berhasil', 'Merge PDF berhasil!');
-            } catch(err) { 
-                console.error(err); 
-                showModal('Gagal', 'Gagal merge PDF.'); 
-            }
+            } catch(err) { showModal('Gagal', 'Gagal merge PDF.'); }
             finally { loadingMsg.classList.add('hidden'); }
         }
 
-        // Drag & drop reorder
         let dragSrcIndex = null;
-        function handleDragStart(e, index) {
-            dragSrcIndex = index;
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', index);
-            e.target.classList.add('dragging');
-        }
-        function handleDragOver(e, index) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-        }
+        function handleDragStart(e, index) { dragSrcIndex = index; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', index); e.target.classList.add('dragging'); }
+        function handleDragOver(e, index) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
         function handleDrop(e, targetIndex) {
             e.preventDefault();
             if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
@@ -966,10 +952,7 @@
             if (activeFileIndex !== -1) setActiveFile(activeFileIndex);
             dragSrcIndex = null;
         }
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-            dragSrcIndex = null;
-        }
+        function handleDragEnd(e) { e.target.classList.remove('dragging'); dragSrcIndex = null; }
 
         async function handleUpload(files) {
             for (const file of files) {
@@ -979,22 +962,10 @@
                 const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                 const numPages = pdfDoc.numPages;
                 const pageDimensionsCm = [];
-                for (let i = 1; i <= numPages; i++) {
-                    pageDimensionsCm.push(await getPageDimensions(pdfDoc, i));
-                }
+                for (let i = 1; i <= numPages; i++) pageDimensionsCm.push(await getPageDimensions(pdfDoc, i));
                 const lastModifiedDate = new Date(file.lastModified).toLocaleDateString('id-ID');
                 uploadedFiles.push({
-                    id: nextId++,
-                    file: file,
-                    name: file.name,
-                    displayName: file.name,
-                    sizeMB: sizeMB,
-                    numPages: numPages,
-                    pdfDoc: pdfDoc,
-                    pageDimensionsCm: pageDimensionsCm,
-                    arrayBuffer: arrayBuffer,
-                    lastModifiedDate: lastModifiedDate,
-                    isRenamed: false
+                    id: nextId++, file, name: file.name, displayName: file.name, sizeMB, numPages, pdfDoc, pageDimensionsCm, arrayBuffer, lastModifiedDate, isRenamed: false
                 });
             }
             renderFileList();
@@ -1013,11 +984,19 @@
                 fileModifiedSpan.innerText = '—';
                 totalPagesSpan.innerText = '—';
                 currentPageSpan.innerText = '1';
+                emptyStateDiv.style.display = 'flex';
+                pdfWrapperDiv.style.display = 'none';
+                resetZoomBtn.style.display = 'none';
+                zoomIndicator.innerText = 'Zoom: 100%';
             }
             uploadedFiles.splice(index, 1);
             if (activeFileIndex > index) activeFileIndex--;
             renderFileList();
             if (uploadedFiles.length > 0 && activeFileIndex === -1) setActiveFile(0);
+            else if (uploadedFiles.length === 0) {
+                emptyStateDiv.style.display = 'flex';
+                pdfWrapperDiv.style.display = 'none';
+            }
         }
 
         function clearAllFiles() {
@@ -1033,6 +1012,9 @@
             fileModifiedSpan.innerText = '—';
             totalPagesSpan.innerText = '—';
             currentPageSpan.innerText = '1';
+            emptyStateDiv.style.display = 'flex';
+            pdfWrapperDiv.style.display = 'none';
+            resetZoomBtn.style.display = 'none';
             renderFileList();
             showModal('Berhasil', 'Semua file telah dihapus.');
         }
@@ -1068,14 +1050,8 @@
                     if (e.target.closest('.rename-btn') || e.target.closest('.delete-file-btn')) return;
                     setActiveFile(idx);
                 });
-                div.querySelector('.rename-btn').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    showRenameModal(idx, f.displayName);
-                });
-                div.querySelector('.delete-file-btn').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    removeFile(idx);
-                });
+                div.querySelector('.rename-btn').addEventListener('click', (e) => { e.stopPropagation(); showRenameModal(idx, f.displayName); });
+                div.querySelector('.delete-file-btn').addEventListener('click', (e) => { e.stopPropagation(); removeFile(idx); });
                 fileListDiv.appendChild(div);
             });
         }
@@ -1098,13 +1074,9 @@
         mergePdfBtn.addEventListener('click', mergePDFs);
         prevBtn.addEventListener('click', () => changePage(-1));
         nextBtn.addEventListener('click', () => changePage(1));
+        resetZoomBtn.addEventListener('click', resetZoom);
         kasihTipsBtn.addEventListener('click', showTipsModal);
-        window.addEventListener('resize', () => { 
-            if (activeFileIndex !== -1) {
-                updateBaseScale();
-                renderPage();
-            }
-        });
+        window.addEventListener('resize', () => { if (activeFileIndex !== -1) { updateBaseScale(); renderPage(); } });
         renderFileList();
     })();
 </script>
