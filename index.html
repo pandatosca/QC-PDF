@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>QC-PDF | Quality Control PDFs Files</title>
-    <!-- Bulma CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- PDF Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <!-- Typo.js untuk spell check -->
+    <script src="https://cdn.jsdelivr.net/npm/typo-js@1.2.4/typo.js"></script>
     <style>
-        /* APPLE-INSPIRED DARK MODE */
+        /* Apple-inspired Dark Mode */
         :root {
             --apple-bg: #0d0d0f;
             --apple-surface: #1c1c1e;
@@ -26,6 +25,11 @@
             --apple-success-bg: #1e3a2f;
             --apple-danger: #ff453a;
         }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             background-color: var(--apple-bg);
             color: var(--apple-text-primary);
@@ -34,33 +38,83 @@
             flex-direction: column;
             min-height: 100vh;
         }
-        /* Apple-style scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: var(--apple-surface); border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #4a4a4e; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #5e5e62; }
-        /* Navbar Apple style */
+        
+        /* Navbar fixed */
         .navbar {
-            background-color: rgba(28, 28, 30, 0.8);
+            background-color: rgba(28, 28, 30, 0.85);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--apple-border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
         }
+        .navbar-brand {
+            margin-left: 1rem;
+        }
+        /* Main content - padding khusus desktop */
+        main {
+            flex: 1;
+            margin-top: 5rem;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+        /* Desktop: tambah padding-top */
+        @media (min-width: 1024px) {
+            main {
+                padding-top: 2rem;  /* tambah jarak atas agar tidak mepet */
+            }
+        }
+        /* Container untuk center horizontal */
+        .container.is-max-desktop {
+            max-width: 1280px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /* Footer tidak fixed */
+        .footer {
+            background-color: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--apple-border);
+            padding: 0.75rem 1.5rem;
+            margin-top: auto;
+        }
+        /* Card styling */
         .card {
             background-color: var(--apple-surface);
             border-radius: 1.25rem;
             border: 1px solid var(--apple-border);
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            transition: all 0.2s ease;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
         .card-header {
             background-color: transparent;
             border-bottom: 1px solid var(--apple-border);
+            padding: 0.75rem 1.25rem;
         }
         .card-header-title {
             color: var(--apple-text-primary);
+            font-size: 1rem;
+            font-weight: 600;
         }
-        .card-content, .card-footer {
+        .card-content {
+            padding: 1.25rem;
+            flex-grow: 1;
+        }
+        .card-footer {
             background-color: var(--apple-surface);
+            border-top: 1px solid var(--apple-border);
+            padding: 0.75rem 1.25rem;
         }
         .button.is-link {
             background-color: var(--apple-accent);
@@ -77,12 +131,12 @@
         .button.is-dark:hover {
             background-color: #3a3a3c;
         }
-        .input {
+        .input, .textarea {
             background-color: var(--apple-surface-secondary);
             border-color: var(--apple-border);
             color: var(--apple-text-primary);
         }
-        .input:focus {
+        .input:focus, .textarea:focus {
             border-color: var(--apple-accent);
             box-shadow: 0 0 0 1px var(--apple-accent);
         }
@@ -90,10 +144,14 @@
             background-color: var(--apple-surface-secondary);
             color: var(--apple-text-secondary);
         }
+        /* File list item */
         .file-item {
             border-radius: 0.75rem;
             transition: all 0.15s;
             cursor: grab;
+            margin-bottom: 0.5rem;
+            padding: 0.75rem;
+            background-color: transparent;
         }
         .file-item.dragging {
             opacity: 0.5;
@@ -107,6 +165,10 @@
             background-color: var(--apple-success-bg);
             border-left: 4px solid var(--apple-success);
         }
+        .file-item:hover:not(.active) {
+            background-color: var(--apple-surface-secondary);
+        }
+        /* Preview area */
         .preview-wrapper {
             background-color: var(--apple-bg);
             border-radius: 1rem;
@@ -115,7 +177,7 @@
             justify-content: center;
             align-items: center;
             min-height: 400px;
-            max-height: 70vh;
+            max-height: 65vh;
             position: relative;
             border: 1px solid var(--apple-border);
         }
@@ -127,11 +189,13 @@
         .empty-state {
             text-align: center;
             color: var(--apple-text-secondary);
+            padding: 2rem;
         }
         .empty-state i {
             font-size: 3rem;
             opacity: 0.6;
         }
+        /* Modal */
         .modal-card {
             background-color: var(--apple-surface);
             border-radius: 1.25rem;
@@ -144,12 +208,6 @@
         .modal-card-title {
             color: var(--apple-text-primary);
         }
-        .footer {
-            background-color: rgba(28, 28, 30, 0.8);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid var(--apple-border);
-            padding: 1rem 1.5rem;
-        }
         .pdf-type-badge {
             background-color: var(--apple-surface-secondary);
             color: var(--apple-text-secondary);
@@ -158,12 +216,20 @@
             font-size: 0.7rem;
             display: inline-block;
         }
-        /* custom grid */
-        @media screen and (min-width: 1024px) {
+        /* Grid custom */
+        .custom-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr 300px;
+            gap: 1.5rem;
+            align-items: stretch;
+        }
+        @media (max-width: 1023px) {
             .custom-grid {
-                display: grid;
-                grid-template-columns: 320px 1fr 300px;
-                gap: 1.5rem;
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            main {
+                margin-top: 4.5rem;
             }
         }
         .truncate {
@@ -171,48 +237,79 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        .info-field {
+            margin-bottom: 1rem;
+        }
+        .info-field .label {
+            font-size: 0.7rem;
+            margin-bottom: 0.2rem;
+            color: var(--apple-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .info-field .value {
+            font-size: 0.9rem;
+            font-weight: 500;
+            word-break: break-word;
+        }
+        .preview-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        @media (max-width: 640px) {
+            .preview-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .preview-controls .buttons {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Navbar Apple Style (tanpa toggle) -->
+    <!-- Navbar fixed -->
     <nav class="navbar is-fixed-top is-spaced" role="navigation">
         <div class="navbar-brand">
             <div class="navbar-item">
-                <i class="fas fa-file-pdf is-size-1 has-text-link" style="color: var(--apple-accent) !important;"></i>
+                <i class="fas fa-file-pdf is-size-1" style="color: var(--apple-accent);"></i>
                 <div class="ml-3">
                     <h1 class="title is-4 has-text-white mb-0">QC‑PDF</h1>
-                    <p class="subtitle is-7" style="color: var(--apple-text-secondary)">Quality Control PDFs Files</p>
+                    <p class="subtitle is-7" style="color: var(--apple-text-secondary);">Quality Control PDFs Files</p>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Main content dengan padding top agar tidak tertutup navbar -->
-    <main class="container is-max-desktop p-4" style="margin-top: 4.5rem; flex: 1;">
-        <div class="custom-grid">
-            
-            <!-- Kolom Kiri: File Manager -->
-            <div class="card">
-                <div class="card-header">
-                    <p class="card-header-title">
-                        <i class="fas fa-folder-open mr-2" style="color: var(--apple-accent)"></i> File PDF
-                    </p>
-                </div>
-                <div class="card-content">
-                    <div id="dragDropArea" class="has-text-centered p-4" style="border: 2px dashed var(--apple-border); border-radius: 1rem; background-color: var(--apple-surface-secondary); cursor: pointer;">
-                        <input type="file" id="pdfUploadInput" accept="application/pdf" multiple class="is-hidden">
-                        <i class="fas fa-cloud-upload-alt is-size-1" style="color: var(--apple-accent); margin-bottom: 0.5rem;"></i>
-                        <p class="has-text-weight-medium">Klik atau seret file PDF ke sini</p>
-                        <p class="is-size-7" style="color: var(--apple-text-secondary);">Mendukung banyak file</p>
-                        <button id="uploadBtn" class="button is-link is-fullwidth mt-3">
-                            <i class="fas fa-upload"></i> Pilih File PDF
-                        </button>
+    <!-- Main Content -->
+    <main>
+        <div class="container is-max-desktop">
+            <div class="custom-grid">
+                
+                <!-- Kiri: File Manager -->
+                <div class="card">
+                    <div class="card-header">
+                        <p class="card-header-title">
+                            <i class="fas fa-folder-open mr-2" style="color: var(--apple-accent);"></i> File PDF
+                        </p>
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="card-footer-item is-block">
-                        <div class="level mb-2">
+                    <div class="card-content">
+                        <div id="dragDropArea" class="has-text-centered p-4" style="border: 2px dashed var(--apple-border); border-radius: 1rem; background-color: var(--apple-surface-secondary); cursor: pointer;">
+                            <input type="file" id="pdfUploadInput" accept="application/pdf" multiple class="is-hidden">
+                            <i class="fas fa-cloud-upload-alt is-size-1" style="color: var(--apple-accent); margin-bottom: 0.5rem;"></i>
+                            <p class="has-text-weight-medium">Klik atau seret file PDF ke sini</p>
+                            <p class="is-size-7" style="color: var(--apple-text-secondary);">Mendukung banyak file</p>
+                            <button id="uploadBtn" class="button is-link is-fullwidth mt-3">
+                                <i class="fas fa-upload"></i> Pilih File PDF
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-footer" style="flex-direction: column;">
+                        <div class="level is-mobile mb-2" style="width: 100%;">
                             <div class="level-left">
                                 <span class="level-item is-size-7" style="color: var(--apple-text-secondary);">DAFTAR FILE</span>
                             </div>
@@ -225,78 +322,87 @@
                                 </button>
                             </div>
                         </div>
-                        <div id="fileListContainer" class="file-list-container" style="max-height: 350px; overflow-y: auto;">
+                        <div id="fileListContainer" style="max-height: 350px; overflow-y: auto; width: 100%;">
                             <div class="has-text-centered py-5 is-size-7" style="color: var(--apple-text-secondary);">Belum ada PDF. Upload file.</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Kolom Tengah: Preview PDF -->
-            <div class="card is-flex is-flex-direction-column" style="height: 100%;">
-                <div class="card-content is-flex-grow-1">
-                    <div id="previewWrapper" class="preview-wrapper">
-                        <div id="emptyState" class="empty-state">
-                            <i class="fas fa-file-pdf"></i>
-                            <p>Belum ada PDF yang dipilih</p>
-                            <p class="is-size-7 mt-2">Upload file PDF untuk mulai melihat</p>
+                <!-- Tengah: Preview PDF -->
+                <div class="card">
+                    <div class="card-content" style="padding-bottom: 0;">
+                        <div id="previewWrapper" class="preview-wrapper">
+                            <div id="emptyState" class="empty-state">
+                                <i class="fas fa-file-pdf"></i>
+                                <p>Belum ada PDF yang dipilih</p>
+                                <p class="is-size-7 mt-2">Upload file PDF untuk mulai melihat</p>
+                            </div>
+                            <div id="pdfWrapper" class="is-hidden">
+                                <canvas id="pdfCanvas"></canvas>
+                            </div>
+                            <div id="loadingMsg" class="is-hidden" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--apple-surface-secondary); padding: 0.25rem 1rem; border-radius: 40px; color: white;">
+                                <i class="fas fa-spinner fa-pulse"></i> Memuat...
+                            </div>
                         </div>
-                        <div id="pdfWrapper" class="is-hidden">
-                            <canvas id="pdfCanvas"></canvas>
-                        </div>
-                        <div id="loadingMsg" class="is-hidden" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--apple-surface-secondary); padding: 0.25rem 1rem; border-radius: 40px; color: white;">
-                            <i class="fas fa-spinner fa-pulse"></i> Memuat...
+                    </div>
+                    <div class="card-footer">
+                        <div class="preview-controls" style="width: 100%;">
+                            <div class="buttons are-small">
+                                <button id="prevPage" class="button is-dark" disabled><i class="fas fa-chevron-left"></i></button>
+                                <span class="has-text-white is-size-7"><span id="currentPage">1</span> / <span id="totalPages">—</span></span>
+                                <button id="nextPage" class="button is-dark" disabled><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            <div class="buttons are-small">
+                                <button id="resetZoomBtn" class="button is-dark is-hidden">Reset Zoom</button>
+                                <span id="zoomIndicator" class="button is-static is-small" style="background: var(--apple-surface-secondary); border: none; color: var(--apple-text-secondary);">Zoom: 100%</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer is-flex is-justify-content-space-between is-align-items-center px-4 py-2">
-                    <div class="buttons are-small">
-                        <button id="prevPage" class="button is-dark" disabled><i class="fas fa-chevron-left"></i></button>
-                        <span class="has-text-white is-size-7"><span id="currentPage">1</span> / <span id="totalPages">—</span></span>
-                        <button id="nextPage" class="button is-dark" disabled><i class="fas fa-chevron-right"></i></button>
-                    </div>
-                    <div class="buttons are-small">
-                        <button id="resetZoomBtn" class="button is-dark is-hidden">Reset Zoom</button>
-                        <span id="zoomIndicator" class="button is-static is-small" style="background: var(--apple-surface-secondary); border: none; color: var(--apple-text-secondary);">Zoom: 100%</span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Kolom Kanan: Informasi File PDF -->
-            <div class="card">
-                <div class="card-content">
-                    <p class="title is-6" style="color: var(--apple-text-primary);">Informasi File PDF</p>
-                    
-                    <div class="field">
-                        <label class="label is-size-7" style="color: var(--apple-text-secondary);">Nama File</label>
-                        <div id="activeFileName" class="has-text-weight-medium is-size-7" style="word-break: break-word;">—</div>
+                <!-- Kanan: Informasi File PDF -->
+                <div class="card">
+                    <div class="card-header">
+                        <p class="card-header-title">
+                            <i class="fas fa-info-circle mr-2" style="color: var(--apple-accent);"></i> Informasi File PDF
+                        </p>
                     </div>
-                    <div class="field">
-                        <label class="label is-size-7" style="color: var(--apple-text-secondary);">Ukuran File</label>
-                        <div id="fileSizeMB" class="is-size-7">— MB</div>
-                    </div>
-                    <div class="field">
-                        <label class="label is-size-7" style="color: var(--apple-text-secondary);">Ukuran Cetak (WxH)</label>
-                        <div id="printSizeCm" class="is-size-7">— cm</div>
-                    </div>
-                    <div class="field">
-                        <label class="label is-size-7" style="color: var(--apple-text-secondary);">Terakhir Diubah</label>
-                        <div id="fileModified" class="is-size-7">—</div>
-                    </div>
-                    <div class="field">
-                        <label class="label is-size-7" style="color: var(--apple-text-secondary);">Jumlah Halaman</label>
-                        <div id="numPages" class="is-size-7">—</div>
-                    </div>
-                    <div class="field">
-                        <label class="label is-size-7" style="color: var(--apple-text-secondary);">Jenis Konten</label>
-                        <div id="pdfTypeBadge" class="pdf-type-badge">—</div>
+                    <div class="card-content">
+                        <div class="info-field">
+                            <div class="label">Nama File</div>
+                            <div id="activeFileName" class="value">—</div>
+                        </div>
+                        <div class="info-field">
+                            <div class="label">Ukuran File</div>
+                            <div id="fileSizeMB" class="value">— MB</div>
+                        </div>
+                        <div class="info-field">
+                            <div class="label">Ukuran Cetak (WxH)</div>
+                            <div id="printSizeCm" class="value">— cm</div>
+                        </div>
+                        <div class="info-field">
+                            <div class="label">Terakhir Diubah</div>
+                            <div id="fileModified" class="value">—</div>
+                        </div>
+                        <div class="info-field">
+                            <div class="label">Jumlah Halaman</div>
+                            <div id="numPages" class="value">—</div>
+                        </div>
+                        <div class="info-field">
+                            <div class="label">Jenis Konten</div>
+                            <div id="pdfTypeBadge" class="pdf-type-badge">—</div>
+                        </div>
+                        <div class="info-field">
+                            <div class="label">Potensi Typo</div>
+                            <div id="typoCount" class="value">—</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Footer Apple Style -->
+    <!-- Footer -->
     <footer class="footer">
         <div class="content has-text-centered is-flex is-justify-content-space-between is-align-items-center">
             <div class="is-size-7" style="color: var(--apple-text-secondary);">QC-PDF 2026 Made with Herry</div>
@@ -310,19 +416,78 @@
         (function(){
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
+            // Inisialisasi Typo.js (kamus bahasa Inggris dan Indonesia sederhana)
+            // Karena Typo.js hanya support English, kita akan buat kamus custom kecil untuk Indonesia.
+            // Untuk demo, kita gunakan English dictionary + beberapa kata Indonesia.
+            // Load dictionary dari CDN untuk English, dan kita tambahkan kata Indonesia manual.
+            let dictionary = null;
+            try {
+                // Typo.js membutuhkan file aff/dic, kita akan gunakan default English (en_US)
+                // Namun untuk kemudahan, kita buat instance dengan bahasa 'en_US' dari CDN.
+                // Karena tidak ada file lokal, kita akan buat custom checker sederhana (regex untuk kata yang tidak dikenal).
+                // Alternatif: menggunakan library sederhana yang mendeteksi kata yang tidak ada dalam daftar kata.
+                // Untuk mempermudah, kita akan buat fungsi sederhana dengan daftar kata umum Indonesia.
+                // Di sini saya akan buat kamus sederhana (100 kata umum) untuk demonstrasi.
+                // Anda bisa memperluas dengan kamus yang lebih lengkap.
+                const commonWords = new Set([
+                    "yang", "dan", "di", "dari", "ini", "itu", "untuk", "dengan", "pada", "adalah", "dapat", "dalam",
+                    "oleh", "telah", "atau", "dari", "ke", "sebagai", "juga", "karena", "jika", "maka", "akan", "tanpa",
+                    "setelah", "sebelum", "selama", "terhadap", "antara", "baik", "bisa", "tidak", "saya", "anda", "kami",
+                    "mereka", "kita", "dia", "beliau", "ini", "itu", "sana", "sini", "sudah", "masih", "lagi", "selalu",
+                    "pernah", "sedang", "akan", "bisa", "dapat", "harus", "ingin", "coba", "tolong", "maaf", "terima",
+                    "kasih", "senang", "kecil", "besar", "bagus", "jelek", "cepat", "lambat", "baru", "lama", "hidup",
+                    "mati", "terang", "gelap", "panas", "dingin", "banyak", "sedikit", "semua", "sendiri", "bersama",
+                    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "having",
+                    "do", "does", "did", "doing", "but", "so", "for", "of", "to", "in", "on", "at", "by", "with", "without",
+                    "about", "against", "between", "through", "during", "before", "after", "above", "below", "under",
+                    "over", "again", "further", "then", "once", "here", "there", "all", "any", "both", "each", "few",
+                    "more", "most", "other", "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than",
+                    "that", "then", "these", "those", "too", "very", "just", "but", "do", "does", "did", "doing"
+                ]);
+                dictionary = {
+                    check: (word) => commonWords.has(word.toLowerCase())
+                };
+            } catch(e) { console.warn(e); }
+
+            // Fungsi untuk menghitung typo pada teks
+            async function countTypos(text) {
+                if (!dictionary) return 0;
+                // split teks menjadi kata (hanya huruf)
+                const words = text.toLowerCase().match(/\b[a-z]+(?:[éèêë]?[a-z]*)?\b/g) || [];
+                let errorCount = 0;
+                for (let word of words) {
+                    if (word.length < 3) continue; // abaikan kata pendek
+                    if (!dictionary.check(word)) {
+                        errorCount++;
+                    }
+                }
+                return errorCount;
+            }
+
+            // Ekstrak teks dari PDF (semua halaman atau beberapa halaman pertama)
+            async function extractTextFromPdf(pdfDoc, maxPages = 10) {
+                let fullText = '';
+                const numPages = Math.min(pdfDoc.numPages, maxPages);
+                for (let i = 1; i <= numPages; i++) {
+                    const page = await pdfDoc.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + ' ';
+                }
+                return fullText;
+            }
+
             let uploadedFiles = [];
             let activeFileIndex = -1;
             let currentPage = 1;
             let currentPdfDoc = null;
             let nextId = 1;
             
-            // Zoom state
             let currentZoom = 1.0;
             let baseScale = 1.0;
             let originalPageWidth = 0;
             let isRendering = false;
             
-            // DOM elements
             const fileListDiv = document.getElementById('fileListContainer');
             const uploadInput = document.getElementById('pdfUploadInput');
             const uploadBtn = document.getElementById('uploadBtn');
@@ -348,10 +513,10 @@
             const resetZoomBtn = document.getElementById('resetZoomBtn');
             const kasihTipsBtn = document.getElementById('kasihTipsBtn');
             const pdfTypeBadge = document.getElementById('pdfTypeBadge');
+            const typoCountSpan = document.getElementById('typoCount');
 
             const qrisUrl = 'https://raw.githubusercontent.com/pandatosca/QC-PDF/main/qris_herry.svg';
             
-            // Modal Apple-style
             function showModal(title, message, showCloseBtn = true) {
                 const modalDiv = document.createElement('div');
                 modalDiv.className = 'modal is-active';
@@ -405,7 +570,6 @@
                 modalDiv.querySelector('.modal-background')?.addEventListener('click', closeModal);
             }
 
-            // === Analisis jenis PDF (raster/vektor) ===
             async function analyzePdfType(pdfDoc, numPages = 5) {
                 let hasText = false;
                 let hasImages = false;
@@ -413,21 +577,31 @@
                     const pagesToCheck = Math.min(numPages, pdfDoc.numPages);
                     for (let i = 1; i <= pagesToCheck; i++) {
                         const page = await pdfDoc.getPage(i);
-                        const operatorList = await page.getOperatorList();
-                        const fnArray = operatorList.fnArray;
-                        for (let j = 0; j < fnArray.length; j++) {
-                            const op = fnArray[j];
-                            if (op >= 35 && op <= 41) hasText = true;      // text operations
-                            if (op === 86 || op === 87 || op === 88) hasImages = true; // image operations
+                        const ops = await page.getOperatorList();
+                        for (let op of ops.fnArray) {
+                            if (op >= 35 && op <= 41) hasText = true;
+                            if (op === 86 || op === 87 || op === 88) hasImages = true;
                             if (hasText && hasImages) break;
                         }
                         if (hasText && hasImages) break;
                     }
-                } catch(e) { console.warn("Error analyzing PDF type", e); }
+                } catch(e) { console.warn(e); }
                 if (hasText && !hasImages) return "Vektor (Text-based)";
                 if (!hasText && hasImages) return "Raster (Scanned)";
                 if (hasText && hasImages) return "Vektor & Raster";
                 return "Tidak diketahui";
+            }
+
+            // Hitung typo pada PDF
+            async function computeTypoCount(pdfDoc) {
+                try {
+                    const text = await extractTextFromPdf(pdfDoc, 10);
+                    const typo = await countTypos(text);
+                    return typo;
+                } catch(e) {
+                    console.warn(e);
+                    return 0;
+                }
             }
 
             function pointsToCm(points) { return (points * 2.54 / 72).toFixed(2); }
@@ -450,9 +624,9 @@
                 loadingMsg.classList.remove('is-hidden');
                 try {
                     const page = await currentPdfDoc.getPage(currentPage);
-                    const originalViewport = page.getViewport({ scale: 1 });
+                    const origVP = page.getViewport({ scale: 1 });
                     if (originalPageWidth === 0) {
-                        originalPageWidth = originalViewport.width;
+                        originalPageWidth = origVP.width;
                         updateBaseScale();
                     }
                     let finalScale = baseScale * currentZoom;
@@ -483,6 +657,7 @@
                 fileModifiedSpan.innerText = file.lastModifiedDate;
                 totalPagesSpan.innerText = file.numPages;
                 pdfTypeBadge.innerText = file.pdfType || "---";
+                typoCountSpan.innerText = file.typoCount !== undefined ? file.typoCount : "Menghitung...";
                 currentPage = 1;
                 currentPageSpan.innerText = '1';
                 currentPdfDoc = file.pdfDoc;
@@ -550,7 +725,6 @@
             });
             resizeObserver.observe(previewWrapper);
 
-            // File operations
             async function renameAndDownloadFile(index, newName) {
                 const file = uploadedFiles[index];
                 let finalName = newName.trim();
@@ -651,8 +825,10 @@
                     for (let i = 1; i <= numPages; i++) pageDimensionsCm.push(await getPageDimensions(pdfDoc, i));
                     const lastModifiedDate = new Date(file.lastModified).toLocaleDateString('id-ID');
                     const pdfType = await analyzePdfType(pdfDoc);
+                    // Hitung typo
+                    const typoCount = await computeTypoCount(pdfDoc);
                     uploadedFiles.push({
-                        id: nextId++, file, name: file.name, displayName: file.name, sizeMB, numPages, pdfDoc, pageDimensionsCm, arrayBuffer, lastModifiedDate, isRenamed: false, pdfType: pdfType
+                        id: nextId++, file, name: file.name, displayName: file.name, sizeMB, numPages, pdfDoc, pageDimensionsCm, arrayBuffer, lastModifiedDate, isRenamed: false, pdfType: pdfType, typoCount: typoCount
                     });
                 }
                 renderFileList();
@@ -671,6 +847,7 @@
                     totalPagesSpan.innerText = '—';
                     currentPageSpan.innerText = '1';
                     pdfTypeBadge.innerText = '—';
+                    typoCountSpan.innerText = '—';
                     emptyStateDiv.classList.remove('is-hidden');
                     pdfWrapperDiv.classList.add('is-hidden');
                     resetZoomBtn.classList.add('is-hidden');
@@ -698,6 +875,7 @@
                 totalPagesSpan.innerText = '—';
                 currentPageSpan.innerText = '1';
                 pdfTypeBadge.innerText = '—';
+                typoCountSpan.innerText = '—';
                 emptyStateDiv.classList.remove('is-hidden');
                 pdfWrapperDiv.classList.add('is-hidden');
                 resetZoomBtn.classList.add('is-hidden');
@@ -716,7 +894,7 @@
                     if (isActive) additionalClass = 'active';
                     if (f.isRenamed && !isActive) additionalClass = 'renamed';
                     const div = document.createElement('div');
-                    div.className = `file-item p-3 mb-2 ${additionalClass}`;
+                    div.className = `file-item ${additionalClass}`;
                     div.draggable = true;
                     div.innerHTML = `
                         <div class="is-flex is-justify-content-space-between is-align-items-center">
@@ -724,6 +902,7 @@
                                 <div class="has-text-weight-medium is-size-7 truncate">${escapeHtml(f.displayName)}</div>
                                 <div class="is-size-7" style="color: var(--apple-text-secondary);">${f.sizeMB} MB • ${f.numPages} halaman</div>
                                 <div><span class="tag is-small mt-1">${f.pdfType}</span></div>
+                                <div><span class="tag is-small mt-1">Typo: ${f.typoCount}</span></div>
                             </div>
                             <div class="buttons are-small ml-2">
                                 <button class="rename-btn button is-ghost" style="color: var(--apple-text-secondary);"><i class="fas fa-pen"></i></button>
@@ -746,7 +925,6 @@
             }
             function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
 
-            // Event binding
             uploadBtn.onclick = () => uploadInput.click();
             uploadInput.onchange = (e) => { if (e.target.files.length) handleUpload(Array.from(e.target.files)); uploadInput.value = ''; };
             dragArea.addEventListener('dragover', (e) => { e.preventDefault(); dragArea.style.borderColor = 'var(--apple-accent)'; });
