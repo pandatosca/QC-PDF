@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <!-- Typo.js untuk spell check -->
-    <script src="https://cdn.jsdelivr.net/npm/typo-js@1.2.4/typo.js"></script>
     <style>
         /* Apple-inspired Dark Mode */
         :root {
@@ -392,10 +390,6 @@
                             <div class="label">Jenis Konten</div>
                             <div id="pdfTypeBadge" class="pdf-type-badge">—</div>
                         </div>
-                        <div class="info-field">
-                            <div class="label">Potensi Typo</div>
-                            <div id="typoCount" class="value">—</div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -415,67 +409,6 @@
     <script>
         (function(){
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
-            // Inisialisasi Typo.js (kamus bahasa Inggris dan Indonesia sederhana)
-            // Karena Typo.js hanya support English, kita akan buat kamus custom kecil untuk Indonesia.
-            // Untuk demo, kita gunakan English dictionary + beberapa kata Indonesia.
-            // Load dictionary dari CDN untuk English, dan kita tambahkan kata Indonesia manual.
-            let dictionary = null;
-            try {
-                // Typo.js membutuhkan file aff/dic, kita akan gunakan default English (en_US)
-                // Namun untuk kemudahan, kita buat instance dengan bahasa 'en_US' dari CDN.
-                // Karena tidak ada file lokal, kita akan buat custom checker sederhana (regex untuk kata yang tidak dikenal).
-                // Alternatif: menggunakan library sederhana yang mendeteksi kata yang tidak ada dalam daftar kata.
-                // Untuk mempermudah, kita akan buat fungsi sederhana dengan daftar kata umum Indonesia.
-                // Di sini saya akan buat kamus sederhana (100 kata umum) untuk demonstrasi.
-                // Anda bisa memperluas dengan kamus yang lebih lengkap.
-                const commonWords = new Set([
-                    "yang", "dan", "di", "dari", "ini", "itu", "untuk", "dengan", "pada", "adalah", "dapat", "dalam",
-                    "oleh", "telah", "atau", "dari", "ke", "sebagai", "juga", "karena", "jika", "maka", "akan", "tanpa",
-                    "setelah", "sebelum", "selama", "terhadap", "antara", "baik", "bisa", "tidak", "saya", "anda", "kami",
-                    "mereka", "kita", "dia", "beliau", "ini", "itu", "sana", "sini", "sudah", "masih", "lagi", "selalu",
-                    "pernah", "sedang", "akan", "bisa", "dapat", "harus", "ingin", "coba", "tolong", "maaf", "terima",
-                    "kasih", "senang", "kecil", "besar", "bagus", "jelek", "cepat", "lambat", "baru", "lama", "hidup",
-                    "mati", "terang", "gelap", "panas", "dingin", "banyak", "sedikit", "semua", "sendiri", "bersama",
-                    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "having",
-                    "do", "does", "did", "doing", "but", "so", "for", "of", "to", "in", "on", "at", "by", "with", "without",
-                    "about", "against", "between", "through", "during", "before", "after", "above", "below", "under",
-                    "over", "again", "further", "then", "once", "here", "there", "all", "any", "both", "each", "few",
-                    "more", "most", "other", "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than",
-                    "that", "then", "these", "those", "too", "very", "just", "but", "do", "does", "did", "doing"
-                ]);
-                dictionary = {
-                    check: (word) => commonWords.has(word.toLowerCase())
-                };
-            } catch(e) { console.warn(e); }
-
-            // Fungsi untuk menghitung typo pada teks
-            async function countTypos(text) {
-                if (!dictionary) return 0;
-                // split teks menjadi kata (hanya huruf)
-                const words = text.toLowerCase().match(/\b[a-z]+(?:[éèêë]?[a-z]*)?\b/g) || [];
-                let errorCount = 0;
-                for (let word of words) {
-                    if (word.length < 3) continue; // abaikan kata pendek
-                    if (!dictionary.check(word)) {
-                        errorCount++;
-                    }
-                }
-                return errorCount;
-            }
-
-            // Ekstrak teks dari PDF (semua halaman atau beberapa halaman pertama)
-            async function extractTextFromPdf(pdfDoc, maxPages = 10) {
-                let fullText = '';
-                const numPages = Math.min(pdfDoc.numPages, maxPages);
-                for (let i = 1; i <= numPages; i++) {
-                    const page = await pdfDoc.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join(' ');
-                    fullText += pageText + ' ';
-                }
-                return fullText;
-            }
 
             let uploadedFiles = [];
             let activeFileIndex = -1;
@@ -513,7 +446,6 @@
             const resetZoomBtn = document.getElementById('resetZoomBtn');
             const kasihTipsBtn = document.getElementById('kasihTipsBtn');
             const pdfTypeBadge = document.getElementById('pdfTypeBadge');
-            const typoCountSpan = document.getElementById('typoCount');
 
             const qrisUrl = 'https://raw.githubusercontent.com/pandatosca/QC-PDF/main/qris_herry.svg';
             
@@ -592,18 +524,6 @@
                 return "Tidak diketahui";
             }
 
-            // Hitung typo pada PDF
-            async function computeTypoCount(pdfDoc) {
-                try {
-                    const text = await extractTextFromPdf(pdfDoc, 10);
-                    const typo = await countTypos(text);
-                    return typo;
-                } catch(e) {
-                    console.warn(e);
-                    return 0;
-                }
-            }
-
             function pointsToCm(points) { return (points * 2.54 / 72).toFixed(2); }
             async function getPageDimensions(pdfDoc, pageNum) {
                 const page = await pdfDoc.getPage(pageNum);
@@ -657,7 +577,6 @@
                 fileModifiedSpan.innerText = file.lastModifiedDate;
                 totalPagesSpan.innerText = file.numPages;
                 pdfTypeBadge.innerText = file.pdfType || "---";
-                typoCountSpan.innerText = file.typoCount !== undefined ? file.typoCount : "Menghitung...";
                 currentPage = 1;
                 currentPageSpan.innerText = '1';
                 currentPdfDoc = file.pdfDoc;
@@ -825,10 +744,8 @@
                     for (let i = 1; i <= numPages; i++) pageDimensionsCm.push(await getPageDimensions(pdfDoc, i));
                     const lastModifiedDate = new Date(file.lastModified).toLocaleDateString('id-ID');
                     const pdfType = await analyzePdfType(pdfDoc);
-                    // Hitung typo
-                    const typoCount = await computeTypoCount(pdfDoc);
                     uploadedFiles.push({
-                        id: nextId++, file, name: file.name, displayName: file.name, sizeMB, numPages, pdfDoc, pageDimensionsCm, arrayBuffer, lastModifiedDate, isRenamed: false, pdfType: pdfType, typoCount: typoCount
+                        id: nextId++, file, name: file.name, displayName: file.name, sizeMB, numPages, pdfDoc, pageDimensionsCm, arrayBuffer, lastModifiedDate, isRenamed: false, pdfType: pdfType
                     });
                 }
                 renderFileList();
@@ -847,11 +764,12 @@
                     totalPagesSpan.innerText = '—';
                     currentPageSpan.innerText = '1';
                     pdfTypeBadge.innerText = '—';
-                    typoCountSpan.innerText = '—';
                     emptyStateDiv.classList.remove('is-hidden');
                     pdfWrapperDiv.classList.add('is-hidden');
                     resetZoomBtn.classList.add('is-hidden');
                 }
+                // Bebaskan memori dokumen pdf.js yang dihapus
+                try { uploadedFiles[index]?.pdfDoc?.destroy?.(); } catch (e) {}
                 uploadedFiles.splice(index, 1);
                 if (activeFileIndex > index) activeFileIndex--;
                 renderFileList();
@@ -863,6 +781,8 @@
             }
             function clearAllFiles() {
                 if (uploadedFiles.length === 0) return;
+                // Bebaskan memori semua dokumen pdf.js
+                uploadedFiles.forEach(f => { try { f.pdfDoc?.destroy?.(); } catch (e) {} });
                 uploadedFiles = [];
                 activeFileIndex = -1;
                 currentPdfDoc = null;
@@ -875,7 +795,6 @@
                 totalPagesSpan.innerText = '—';
                 currentPageSpan.innerText = '1';
                 pdfTypeBadge.innerText = '—';
-                typoCountSpan.innerText = '—';
                 emptyStateDiv.classList.remove('is-hidden');
                 pdfWrapperDiv.classList.add('is-hidden');
                 resetZoomBtn.classList.add('is-hidden');
@@ -902,7 +821,6 @@
                                 <div class="has-text-weight-medium is-size-7 truncate">${escapeHtml(f.displayName)}</div>
                                 <div class="is-size-7" style="color: var(--apple-text-secondary);">${f.sizeMB} MB • ${f.numPages} halaman</div>
                                 <div><span class="tag is-small mt-1">${f.pdfType}</span></div>
-                                <div><span class="tag is-small mt-1">Typo: ${f.typoCount}</span></div>
                             </div>
                             <div class="buttons are-small ml-2">
                                 <button class="rename-btn button is-ghost" style="color: var(--apple-text-secondary);"><i class="fas fa-pen"></i></button>
@@ -923,7 +841,7 @@
                     fileListDiv.appendChild(div);
                 });
             }
-            function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+            function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m])); }
 
             uploadBtn.onclick = () => uploadInput.click();
             uploadInput.onchange = (e) => { if (e.target.files.length) handleUpload(Array.from(e.target.files)); uploadInput.value = ''; };
