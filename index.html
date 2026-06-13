@@ -261,11 +261,41 @@
             .preview-controls {
                 flex-direction: column;
                 align-items: stretch;
+                gap: 0.75rem;
             }
             .preview-controls .buttons {
                 justify-content: center;
+                margin-bottom: 0 !important;
             }
         }
+        /* Kartu kiri: upload tetap di atas, daftar file mengisi sisa ruang */
+        .file-card-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .file-card-content #dragDropArea { flex-shrink: 0; }
+        .daftar-file-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-list {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            width: 100%;
+        }
+        @media (max-width: 1023px) {
+            .file-list { max-height: 45vh; }
+        }
+        /* Indikator zoom: lebar tetap agar tombol tidak bergeser */
+        #zoomIndicator {
+            min-width: 3.5rem;
+            text-align: center;
+            justify-content: center;
+        }
+        .empty-state p { margin: 0; }
     </style>
 </head>
 <body>
@@ -295,32 +325,31 @@
                             <i class="fas fa-folder-open mr-2" style="color: var(--apple-accent);"></i> File PDF
                         </p>
                     </div>
-                    <div class="card-content">
+                    <div class="card-content file-card-content">
                         <div id="dragDropArea" class="has-text-centered p-4" style="border: 2px dashed var(--apple-border); border-radius: 1rem; background-color: var(--apple-surface-secondary); cursor: pointer;">
                             <input type="file" id="pdfUploadInput" accept="application/pdf" multiple class="is-hidden">
                             <i class="fas fa-cloud-upload-alt is-size-1" style="color: var(--apple-accent); margin-bottom: 0.5rem;"></i>
                             <p class="has-text-weight-medium">Klik atau seret file PDF ke sini</p>
                             <p class="is-size-7" style="color: var(--apple-text-secondary);">Mendukung banyak file</p>
                             <button id="uploadBtn" class="button is-link is-fullwidth mt-3">
-                                <i class="fas fa-upload"></i> Pilih File PDF
+                                <span class="icon"><i class="fas fa-upload"></i></span>
+                                <span>Pilih File PDF</span>
                             </button>
                         </div>
-                    </div>
-                    <div class="card-footer" style="flex-direction: column;">
-                        <div class="level is-mobile mb-2" style="width: 100%;">
-                            <div class="level-left">
-                                <span class="level-item is-size-7" style="color: var(--apple-text-secondary);">DAFTAR FILE</span>
-                            </div>
-                            <div class="level-right">
+                        <div class="daftar-file-bar">
+                            <span class="is-size-7 has-text-weight-semibold" style="color: var(--apple-text-secondary); letter-spacing: 0.03em;">DAFTAR FILE</span>
+                            <div class="buttons are-small mb-0">
                                 <button id="mergePdfBtn" class="button is-small is-ghost" style="color: var(--apple-text-secondary);">
-                                    <i class="fas fa-object-group"></i> Merge
+                                    <span class="icon is-small"><i class="fas fa-object-group"></i></span>
+                                    <span>Merge</span>
                                 </button>
                                 <button id="clearAllBtn" class="button is-small is-ghost" style="color: var(--apple-text-secondary);">
-                                    <i class="fas fa-trash-alt"></i> Clear all
+                                    <span class="icon is-small"><i class="fas fa-trash-alt"></i></span>
+                                    <span>Clear all</span>
                                 </button>
                             </div>
                         </div>
-                        <div id="fileListContainer" style="max-height: 350px; overflow-y: auto; width: 100%;">
+                        <div id="fileListContainer" class="file-list">
                             <div class="has-text-centered py-5 is-size-7" style="color: var(--apple-text-secondary);">Belum ada PDF. Upload file.</div>
                         </div>
                     </div>
@@ -345,14 +374,16 @@
                     </div>
                     <div class="card-footer">
                         <div class="preview-controls" style="width: 100%;">
-                            <div class="buttons are-small">
-                                <button id="prevPage" class="button is-dark" disabled><i class="fas fa-chevron-left"></i></button>
-                                <span class="has-text-white is-size-7"><span id="currentPage">1</span> / <span id="totalPages">—</span></span>
-                                <button id="nextPage" class="button is-dark" disabled><i class="fas fa-chevron-right"></i></button>
+                            <div class="buttons are-small mb-0">
+                                <button id="prevPage" class="button is-dark" disabled title="Halaman sebelumnya"><span class="icon is-small"><i class="fas fa-chevron-left"></i></span></button>
+                                <span class="has-text-white is-size-7 mx-2"><span id="currentPage">1</span> / <span id="totalPages">—</span></span>
+                                <button id="nextPage" class="button is-dark" disabled title="Halaman berikutnya"><span class="icon is-small"><i class="fas fa-chevron-right"></i></span></button>
                             </div>
-                            <div class="buttons are-small">
-                                <button id="resetZoomBtn" class="button is-dark is-hidden">Reset Zoom</button>
-                                <span id="zoomIndicator" class="button is-static is-small" style="background: var(--apple-surface-secondary); border: none; color: var(--apple-text-secondary);">Zoom: 100%</span>
+                            <div class="buttons are-small mb-0">
+                                <button id="zoomOutBtn" class="button is-dark" disabled title="Perkecil"><span class="icon is-small"><i class="fas fa-minus"></i></span></button>
+                                <span id="zoomIndicator" class="button is-static is-small" style="background: var(--apple-surface-secondary); border: none; color: var(--apple-text-secondary);">100%</span>
+                                <button id="zoomInBtn" class="button is-dark" disabled title="Perbesar"><span class="icon is-small"><i class="fas fa-plus"></i></span></button>
+                                <button id="resetZoomBtn" class="button is-dark" disabled title="Paskan ke lebar"><span class="icon is-small"><i class="fas fa-expand"></i></span></button>
                             </div>
                         </div>
                     </div>
@@ -401,7 +432,8 @@
         <div class="content has-text-centered is-flex is-justify-content-space-between is-align-items-center">
             <div class="is-size-7" style="color: var(--apple-text-secondary);">QC-PDF 2026 Made with Herry</div>
             <div id="kasihTipsBtn" class="is-clickable is-flex is-align-items-center" style="color: var(--apple-accent);">
-                <i class="fas fa-heart has-text-danger mr-1"></i> Kasih Tips
+                <span class="icon mr-1"><i class="fas fa-heart has-text-danger"></i></span>
+                <span>Kasih Tips</span>
             </div>
         </div>
     </footer>
@@ -444,8 +476,14 @@
             const loadingMsg = document.getElementById('loadingMsg');
             const zoomIndicator = document.getElementById('zoomIndicator');
             const resetZoomBtn = document.getElementById('resetZoomBtn');
+            const zoomInBtn = document.getElementById('zoomInBtn');
+            const zoomOutBtn = document.getElementById('zoomOutBtn');
             const kasihTipsBtn = document.getElementById('kasihTipsBtn');
             const pdfTypeBadge = document.getElementById('pdfTypeBadge');
+
+            function setZoomEnabled(enabled) {
+                [zoomInBtn, zoomOutBtn, resetZoomBtn].forEach(b => { if (b) b.disabled = !enabled; });
+            }
 
             const qrisUrl = 'https://raw.githubusercontent.com/pandatosca/QC-PDF/main/qris_herry.svg';
             
@@ -557,8 +595,7 @@
                     canvas.style.maxWidth = '100%';
                     canvas.style.height = 'auto';
                     await page.render({ canvasContext: ctx, viewport, background: 'white' }).promise;
-                    zoomIndicator.innerText = `Zoom: ${Math.round(currentZoom * 100)}%`;
-                    resetZoomBtn.classList.remove('is-hidden');
+                    zoomIndicator.innerText = `${Math.round(currentZoom * 100)}%`;
                 } catch(err) { console.error(err); }
                 finally { loadingMsg.classList.add('is-hidden'); isRendering = false; }
             }
@@ -587,6 +624,7 @@
                 updateBaseScale();
                 emptyStateDiv.classList.add('is-hidden');
                 pdfWrapperDiv.classList.remove('is-hidden');
+                setZoomEnabled(true);
                 await renderPage();
                 updateNavButtons();
             }
@@ -766,7 +804,7 @@
                     pdfTypeBadge.innerText = '—';
                     emptyStateDiv.classList.remove('is-hidden');
                     pdfWrapperDiv.classList.add('is-hidden');
-                    resetZoomBtn.classList.add('is-hidden');
+                    setZoomEnabled(false);
                 }
                 // Bebaskan memori dokumen pdf.js yang dihapus
                 try { uploadedFiles[index]?.pdfDoc?.destroy?.(); } catch (e) {}
@@ -797,7 +835,7 @@
                 pdfTypeBadge.innerText = '—';
                 emptyStateDiv.classList.remove('is-hidden');
                 pdfWrapperDiv.classList.add('is-hidden');
-                resetZoomBtn.classList.add('is-hidden');
+                setZoomEnabled(false);
                 renderFileList();
                 showModal('Berhasil', 'Semua file telah dihapus.');
             }
@@ -859,6 +897,8 @@
             prevBtn.onclick = () => changePage(-1);
             nextBtn.onclick = () => changePage(1);
             resetZoomBtn.onclick = resetZoom;
+            zoomInBtn.onclick = () => adjustZoom(1.25);
+            zoomOutBtn.onclick = () => adjustZoom(0.8);
             kasihTipsBtn.onclick = showTipsModal;
             window.addEventListener('resize', () => { if (activeFileIndex !== -1) { updateBaseScale(); renderPage(); } });
             renderFileList();
