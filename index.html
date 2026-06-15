@@ -217,24 +217,21 @@
             background-color: var(--surface-2);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
-            overflow: auto;
+            overflow: hidden;            /* fit-contain: halaman muat penuh, tanpa scroll */
             display: flex;
-            justify-content: flex-start;
-            align-items: flex-start;
-            min-height: 400px;
-            max-height: 70vh;
+            justify-content: center;
+            align-items: center;
+            height: 68vh;
+            min-height: 360px;
             position: relative;
             padding: 12px;
         }
-        /* margin:auto = center saat muat, scroll dari atas saat lebih tinggi (anti "geser kacau") */
-        #pdfWrapper, .empty-state { margin: auto; }
-        #pdfWrapper { width: 100%; text-align: center; }
+        #pdfWrapper { display: flex; align-items: center; justify-content: center; max-width: 100%; max-height: 100%; }
         canvas {
             background: #fff;
             border-radius: var(--radius-sm);
             box-shadow: var(--shadow-3);
-            max-width: 100%;
-            height: auto;
+            display: block;
         }
         .empty-state { text-align: center; color: var(--text-muted); padding: 2rem; }
         .empty-state i { font-size: 3rem; color: var(--gray-300); }
@@ -442,10 +439,6 @@
             let currentPage = 1;
             let currentPdfDoc = null;
             let nextId = 1;
-            
-            let currentZoom = 1.0;
-            let baseScale = 1.0;
-            let originalPageWidth = 0;
             let isRendering = false;
             
             const fileListDiv = document.getElementById('fileListContainer');
@@ -552,13 +545,6 @@
                 return { widthCm: pointsToCm(viewport.width), heightCm: pointsToCm(viewport.height), widthPt: viewport.width, heightPt: viewport.height };
             }
             
-            function updateBaseScale() {
-                if (!previewWrapper || !originalPageWidth) return;
-                const containerWidth = previewWrapper.clientWidth - 20;
-                if (containerWidth > 0 && originalPageWidth > 0) baseScale = containerWidth / originalPageWidth;
-                else baseScale = 1;
-            }
-
             async function renderPage() {
                 if (!currentPdfDoc || activeFileIndex === -1 || isRendering) return;
                 isRendering = true;
@@ -566,17 +552,18 @@
                 try {
                     const page = await currentPdfDoc.getPage(currentPage);
                     const origVP = page.getViewport({ scale: 1 });
-                    if (originalPageWidth === 0) {
-                        originalPageWidth = origVP.width;
-                        updateBaseScale();
-                    }
-                    let finalScale = baseScale * currentZoom;
-                    finalScale = Math.min(Math.max(finalScale, 0.2), 4.0);
-                    const viewport = page.getViewport({ scale: finalScale });
+                    // fit-contain: skala agar halaman muat penuh (lebar & tinggi) tanpa scroll
+                    const pad = 24;
+                    const availW = Math.max(previewWrapper.clientWidth - pad, 50);
+                    const availH = Math.max(previewWrapper.clientHeight - pad, 50);
+                    const fitScale = Math.min(availW / origVP.width, availH / origVP.height);
+                    const dpr = window.devicePixelRatio || 1;
+                    const viewport = page.getViewport({ scale: fitScale * dpr });
                     canvas.width = viewport.width;
                     canvas.height = viewport.height;
-                    canvas.style.maxWidth = '100%';
-                    canvas.style.height = 'auto';
+                    // tampilkan pada ukuran fit (px), resolusi tinggi via DPR
+                    canvas.style.width = (fitScale * origVP.width) + 'px';
+                    canvas.style.height = (fitScale * origVP.height) + 'px';
                     await page.render({ canvasContext: ctx, viewport, background: 'white' }).promise;
                 } catch(err) { console.error(err); }
                 finally { loadingMsg.classList.add('is-hidden'); isRendering = false; }
@@ -595,18 +582,13 @@
                 pdfTypeBadge.innerText = file.pdfType || "---";
                 currentPage = 1;
                 currentPdfDoc = file.pdfDoc;
-                currentZoom = 1.0;
-                const firstPage = await currentPdfDoc.getPage(1);
-                const vp = firstPage.getViewport({ scale: 1 });
-                originalPageWidth = vp.width;
-                updateBaseScale();
                 emptyStateDiv.classList.add('is-hidden');
                 pdfWrapperDiv.classList.remove('is-hidden');
                 await renderPage();
             }
 
             const resizeObserver = new ResizeObserver(() => {
-                if (activeFileIndex !== -1) { updateBaseScale(); renderPage(); }
+                if (activeFileIndex !== -1) renderPage();
             });
             resizeObserver.observe(previewWrapper);
 
@@ -817,7 +799,7 @@
             clearAllBtn.onclick = clearAllFiles;
             mergePdfBtn.onclick = mergePDFs;
             kasihTipsBtn.onclick = showTipsModal;
-            window.addEventListener('resize', () => { if (activeFileIndex !== -1) { updateBaseScale(); renderPage(); } });
+            window.addEventListener('resize', () => { if (activeFileIndex !== -1) renderPage(); });
             renderFileList();
         })();
     </script>
